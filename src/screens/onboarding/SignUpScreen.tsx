@@ -21,7 +21,8 @@ export default function SignUpScreen() {
   const handleEmailSignUp = async () => {
     setLoading(true);
     try {
-      const user = await signUp(email, password, name);
+      const result = await signUp(email, password, name);
+      const user = result.user;
       if (userProfile.language) {
         await saveLanguage(user.uid, userProfile.language);
       }

@@ -1,6 +1,7 @@
 // src/navigation/AppNavigator.tsx
 
 import React from 'react';
+import { ActivityIndicator, Text, View } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -95,7 +96,16 @@ function MainTabs() {
 export default function AppNavigator() {
   const { user, loading } = useApp();
 
-  if (loading) return null; // splash handled by expo-splash-screen
+  if (loading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-canvas">
+        <ActivityIndicator size="large" color={COLORS.gradStart} />
+        <Text className="mt-3 text-[13px] text-textSecondary" style={{ fontFamily: FONTS.sans }}>
+          Preparing your app...
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <Stack.Navigator

@@ -69,29 +69,51 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    let unsub = () => {};
+    let isMounted = true;
+
+    const unsub = onAuthStateChanged(async (u) => {
+      if (!isMounted) return;
+
+      setUser(u);
+
+      if (!u) {
+        setProfile({});
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const data = await getUserProfile(u.uid);
+        if (!isMounted) return;
+        if (data) {
+          setProfile({
+            name: data.name,
+            language: data.language,
+            ...data.profile
+          });
+        }
+      } catch (err) {
+        console.warn('Profile load failed during auth state update:', err);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    });
 
     const boot = async () => {
-      await initializeAuthState();
-
-      unsub = onAuthStateChanged(async (u) => {
-        setUser(u);
-        if (u) {
-          const data = await getUserProfile(u.uid);
-          if (data) {
-            setProfile({
-              name: data.name,
-              language: data.language,
-              ...data.profile
-            });
-          }
-        }
-        setLoading(false);
-      });
+      try {
+        await initializeAuthState();
+      } catch (err) {
+        console.error('Auth bootstrap failed:', err);
+        if (isMounted) setLoading(false);
+      }
     };
 
-    boot();
-    return () => unsub();
+    void boot();
+
+    return () => {
+      isMounted = false;
+      unsub();
+    };
   }, []);
 
   const setUserProfile = (partial: Partial<UserProfile>) =>

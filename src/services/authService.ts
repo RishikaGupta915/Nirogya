@@ -3,7 +3,7 @@ import * as AuthSession from 'expo-auth-session';
 import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
 import * as WebBrowser from 'expo-web-browser';
-import { supabase } from './supabaseClient';
+import { isSupabaseConfigured, supabase } from './supabaseClient';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -29,6 +29,13 @@ export const auth: { currentUser: User | null } = {
 type Listener = (user: User | null) => void;
 const listeners = new Set<Listener>();
 let isHydrated = false;
+
+function ensureSupabaseConfigured() {
+  if (isSupabaseConfigured) return;
+  throw new Error(
+    'Supabase is not configured. Add EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in .env and restart Expo.'
+  );
+}
 
 function profileKey(uid: string) {
   return `${PROFILE_KEY_PREFIX}${uid}`;
@@ -106,31 +113,47 @@ export async function initializeAuthState() {
   if (isHydrated) return;
   isHydrated = true;
 
-  const raw = await SecureStore.getItemAsync(SESSION_KEY);
-  if (raw) {
-    try {
-      const stored = JSON.parse(raw);
-      if (stored?.access_token && stored?.refresh_token) {
-        await supabase.auth.setSession(stored);
-      }
-    } catch {
-      await SecureStore.deleteItemAsync(SESSION_KEY);
-    }
+  if (!isSupabaseConfigured) {
+    auth.currentUser = null;
+    emitAuthState();
+    return;
   }
 
-  const { data } = await supabase.auth.getSession();
-  auth.currentUser = mapSupabaseUser(data.session?.user ?? null);
-  emitAuthState();
-
-  supabase.auth.onAuthStateChange(async (_event, session) => {
-    auth.currentUser = mapSupabaseUser(session?.user ?? null);
-    if (session) {
-      await SecureStore.setItemAsync(SESSION_KEY, JSON.stringify(session));
-    } else {
-      await SecureStore.deleteItemAsync(SESSION_KEY);
+  try {
+    const raw = await SecureStore.getItemAsync(SESSION_KEY);
+    if (raw) {
+      try {
+        const stored = JSON.parse(raw);
+        if (stored?.access_token && stored?.refresh_token) {
+          await supabase.auth.setSession(stored);
+        }
+      } catch {
+        await SecureStore.deleteItemAsync(SESSION_KEY);
+      }
     }
+
+    const { data } = await supabase.auth.getSession();
+    auth.currentUser = mapSupabaseUser(data.session?.user ?? null);
     emitAuthState();
-  });
+
+    supabase.auth.onAuthStateChange(async (_event, session) => {
+      auth.currentUser = mapSupabaseUser(session?.user ?? null);
+      try {
+        if (session) {
+          await SecureStore.setItemAsync(SESSION_KEY, JSON.stringify(session));
+        } else {
+          await SecureStore.deleteItemAsync(SESSION_KEY);
+        }
+      } catch (storageErr) {
+        console.warn('Session persistence failed:', storageErr);
+      }
+      emitAuthState();
+    });
+  } catch (err) {
+    console.error('initializeAuthState failed:', err);
+    auth.currentUser = null;
+    emitAuthState();
+  }
 }
 
 export function onAuthStateChanged(listener: Listener) {
@@ -140,6 +163,7 @@ export function onAuthStateChanged(listener: Listener) {
 }
 
 export async function signInWithGoogle() {
+  ensureSupabaseConfigured();
   const redirectTo = getRedirectUri();
   console.log('[OAuth] appOwnership =', Constants.appOwnership);
   console.log('[OAuth] executionEnvironment =', Constants.executionEnvironment);
@@ -204,6 +228,7 @@ export async function signUp(
   _password: string,
   name: string
 ): Promise<SignUpResult> {
+  ensureSupabaseConfigured();
   const email = _email.trim();
   const password = _password;
 
@@ -257,6 +282,7 @@ export async function signUp(
 }
 
 export async function signIn(_email: string, _password: string) {
+  ensureSupabaseConfigured();
   const email = _email.trim();
   const password = _password;
 
@@ -284,6 +310,12 @@ export async function signIn(_email: string, _password: string) {
 }
 
 export async function logOut() {
+  if (!isSupabaseConfigured) {
+    auth.currentUser = null;
+    emitAuthState();
+    return;
+  }
+
   await supabase.auth.signOut();
   auth.currentUser = null;
   await SecureStore.deleteItemAsync(SESSION_KEY);
@@ -291,6 +323,7 @@ export async function logOut() {
 }
 
 export async function resetPassword(_email: string) {
+  ensureSupabaseConfigured();
   const email = _email.trim();
   if (!email) throw new Error('Email is required.');
 

@@ -27,7 +27,7 @@ const NIM_QUESTION_MODELS = (
   'qwen/qwen3.5-397b-a17b,google/gemma-3-27b-it'
 )
   .split(',')
-  .map((m) => m.trim())
+  .map((m: string) => m.trim())
   .filter(Boolean);
 
 const NIM_DIAGNOSIS_MODELS = (
@@ -35,7 +35,7 @@ const NIM_DIAGNOSIS_MODELS = (
   'qwen/qwen3.5-397b-a17b,google/gemma-3-27b-it'
 )
   .split(',')
-  .map((m) => m.trim())
+  .map((m: string) => m.trim())
   .filter(Boolean);
 
 async function generateViaNimModel(
