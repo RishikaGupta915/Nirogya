@@ -1,12 +1,12 @@
 // src/screens/onboarding/AboutYou4Screen.tsx — Sleep & Stress
 
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Switch } from 'react-native';
+import { View, Text, Switch } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Slider from '@react-native-community/slider';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { ProgressDots, ProgressBar, GradientButton, GhostButton, SectionLabel, Chip } from '../../components/UI';
-import { COLORS, FONTS, SPACING, RADIUS } from '../../constants/theme';
+import { COLORS, FONTS, SPACING } from '../../constants/theme';
 import { useApp } from '../../context/AppContext';
 
 const SLEEP_QUALITY = ['Fall asleep easily', 'Wake up frequently', 'Always exhausted', 'Light sleeper', 'Snoring/apnea'];
@@ -37,11 +37,17 @@ export default function AboutYou4Screen() {
       <ProgressDots total={5} current={3} />
       <ProgressBar current={4} total={5} />
 
-      <Text style={styles.heading}>Sleep & mental wellbeing</Text>
-      <Text style={styles.sub}>Stress and sleep affect nearly every health condition in women.</Text>
+      <Text className="mb-2 text-[20px] text-textPrimary" style={{ fontFamily: FONTS.serif, fontWeight: '600' }}>
+        Sleep & mental wellbeing
+      </Text>
+      <Text className="mb-4 text-[12px] leading-[18px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
+        Stress and sleep affect nearly every health condition in women.
+      </Text>
 
       <SectionLabel label="Average sleep per night" />
-      <Text style={styles.sliderVal}>{sleepHours.toFixed(1)} hrs</Text>
+      <Text className="mb-1 text-center text-[22px] text-brandStart" style={{ fontFamily: FONTS.serif }}>
+        {sleepHours.toFixed(1)} hrs
+      </Text>
       <Slider
         style={{ marginBottom: SPACING.sm }}
         minimumValue={3}
@@ -53,37 +59,45 @@ export default function AboutYou4Screen() {
         maximumTrackTintColor={COLORS.border}
         thumbTintColor={COLORS.gradStart}
       />
-      <View style={styles.sliderLabels}>
-        <Text style={styles.sliderLbl}>3 hrs</Text>
-        <Text style={styles.sliderLbl}>7.5 hrs</Text>
-        <Text style={styles.sliderLbl}>12 hrs</Text>
+      <View className="mb-3 flex-row justify-between">
+        <Text className="text-[10px] text-textMuted" style={{ fontFamily: FONTS.sans }}>3 hrs</Text>
+        <Text className="text-[10px] text-textMuted" style={{ fontFamily: FONTS.sans }}>7.5 hrs</Text>
+        <Text className="text-[10px] text-textMuted" style={{ fontFamily: FONTS.sans }}>12 hrs</Text>
       </View>
 
       <SectionLabel label="Sleep quality" />
-      <View style={styles.chipRow}>
+      <View className="mb-2 flex-row flex-wrap">
         {SLEEP_QUALITY.map(q => (
           <Chip key={q} label={q} selected={sleepQuality.includes(q)} color="indigo" onPress={() => toggleQuality(q)} />
         ))}
       </View>
 
       <SectionLabel label="Current stress level" />
-      <View style={styles.chipRow}>
+      <View className="mb-2 flex-row flex-wrap">
         {STRESS_LEVELS.map(s => (
           <Chip key={s} label={s} selected={stressLevel === s} color="red" onPress={() => setStressLevel(s)} />
         ))}
       </View>
 
       <SectionLabel label="Mental health check-ins" />
-      <View style={styles.toggleCard}>
+      <View className="mb-2 rounded-xl border border-borderSoft bg-card px-3">
         {[
           { label: 'Mood swings',    sub: 'Noticeable changes in mood',   val: moodSwings,    set: setMoodSwings },
           { label: 'Anxiety or worry', sub: 'Regular feelings of dread', val: anxiety,       set: setAnxiety },
           { label: 'Low motivation', sub: 'Struggle to start tasks',      val: lowMotivation, set: setLowMotivation },
         ].map((item, i, arr) => (
-          <View key={item.label} style={[styles.toggleRow, i < arr.length - 1 && styles.toggleBorder]}>
+          <View
+            key={item.label}
+            className="flex-row items-center gap-3 py-3"
+            style={i < arr.length - 1 ? { borderBottomWidth: 0.5, borderBottomColor: COLORS.border } : undefined}
+          >
             <View style={{ flex: 1 }}>
-              <Text style={styles.toggleLabel}>{item.label}</Text>
-              <Text style={styles.toggleSub}>{item.sub}</Text>
+              <Text className="mb-[2px] text-[13px] text-textSecondary" style={{ fontFamily: FONTS.sans }}>
+                {item.label}
+              </Text>
+              <Text className="text-[10px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
+                {item.sub}
+              </Text>
             </View>
             <Switch
               value={item.val}
@@ -100,20 +114,3 @@ export default function AboutYou4Screen() {
     </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  heading:      { fontFamily: FONTS.serif, fontSize: 20, fontWeight: '600', color: COLORS.textPrimary, marginBottom: SPACING.sm },
-  sub:          { fontSize: 12, fontFamily: FONTS.sans, color: COLORS.textMuted, lineHeight: 18, marginBottom: SPACING.lg },
-  sliderVal:    { fontFamily: FONTS.serif, fontSize: 22, color: COLORS.pink, textAlign: 'center', marginBottom: 4 },
-  sliderLabels: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: SPACING.md },
-  sliderLbl:    { fontSize: 10, color: COLORS.textMuted, fontFamily: FONTS.sans },
-  chipRow:      { flexDirection: 'row', flexWrap: 'wrap', marginBottom: SPACING.sm },
-  toggleCard: {
-    backgroundColor: COLORS.bgCard, borderWidth: 0.5, borderColor: COLORS.border,
-    borderRadius: RADIUS.lg, paddingHorizontal: SPACING.md, marginBottom: SPACING.sm,
-  },
-  toggleRow:    { flexDirection: 'row', alignItems: 'center', gap: SPACING.md, paddingVertical: SPACING.md },
-  toggleBorder: { borderBottomWidth: 0.5, borderBottomColor: COLORS.border },
-  toggleLabel:  { fontSize: 13, fontFamily: FONTS.sans, color: COLORS.textSecondary, marginBottom: 2 },
-  toggleSub:    { fontSize: 10, fontFamily: FONTS.sans, color: COLORS.textMuted },
-});

@@ -1,11 +1,11 @@
 // src/screens/onboarding/SignUpScreen.tsx
 
 import React, { useState } from 'react';
-import { Text, StyleSheet, Alert, TextInput } from 'react-native';
+import { Text, Alert, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { ProgressDots, GradientButton, GhostButton } from '../../components/UI';
-import { COLORS, FONTS, SPACING } from '../../constants/theme';
+import { COLORS, FONTS } from '../../constants/theme';
 import { saveLanguage, signUp } from '../../services/authService';
 import { useApp } from '../../context/AppContext';
 
@@ -25,7 +25,7 @@ export default function SignUpScreen() {
       if (userProfile.language) {
         await saveLanguage(user.uid, userProfile.language);
       }
-      setUserProfile({ name: name || user.displayName ?? undefined });
+      setUserProfile({ name: (name || user.displayName) ?? undefined });
       nav.navigate('AboutYou1');
     } catch (err: any) {
       Alert.alert('Sign up failed', err.message);
@@ -38,13 +38,23 @@ export default function SignUpScreen() {
     <ScreenWrapper>
       <ProgressDots total={4} current={2} />
 
-      <Text style={styles.heading}>Create your account</Text>
-      <Text style={styles.sub}>
+      <Text className="mb-2 text-[22px] text-textPrimary" style={{ fontFamily: FONTS.serif, fontWeight: '600' }}>
+        Create your account
+      </Text>
+      <Text className="mb-6 text-[12px] leading-[18px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
         Create your account with email and password.
       </Text>
 
       <TextInput
-        style={styles.input}
+        className="mb-3 rounded-[14px] border border-borderSoft bg-card px-[14px] py-3 text-[14px] text-textPrimary"
+        style={{
+          fontFamily: FONTS.sans,
+          shadowColor: '#2f4b84',
+          shadowOffset: { width: 0, height: 5 },
+          shadowOpacity: 0.08,
+          shadowRadius: 10,
+          elevation: 2
+        }}
         placeholder="Full name"
         placeholderTextColor={COLORS.textMuted}
         value={name}
@@ -52,7 +62,15 @@ export default function SignUpScreen() {
       />
 
       <TextInput
-        style={styles.input}
+        className="mb-3 rounded-[14px] border border-borderSoft bg-card px-[14px] py-3 text-[14px] text-textPrimary"
+        style={{
+          fontFamily: FONTS.sans,
+          shadowColor: '#2f4b84',
+          shadowOffset: { width: 0, height: 5 },
+          shadowOpacity: 0.08,
+          shadowRadius: 10,
+          elevation: 2
+        }}
         placeholder="Email"
         placeholderTextColor={COLORS.textMuted}
         keyboardType="email-address"
@@ -62,7 +80,15 @@ export default function SignUpScreen() {
       />
 
       <TextInput
-        style={styles.input}
+        className="mb-3 rounded-[14px] border border-borderSoft bg-card px-[14px] py-3 text-[14px] text-textPrimary"
+        style={{
+          fontFamily: FONTS.sans,
+          shadowColor: '#2f4b84',
+          shadowOffset: { width: 0, height: 5 },
+          shadowOpacity: 0.08,
+          shadowRadius: 10,
+          elevation: 2
+        }}
         placeholder="Password"
         placeholderTextColor={COLORS.textMuted}
         secureTextEntry
@@ -71,10 +97,10 @@ export default function SignUpScreen() {
         onChangeText={setPassword}
       />
 
-      <Text style={styles.terms}>
+      <Text className="mb-4 text-[11px] leading-[17px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
         By continuing, you agree to our{' '}
-        <Text style={styles.link}>Terms of Service</Text> and{' '}
-        <Text style={styles.link}>Privacy Policy</Text>.
+        <Text style={{ color: COLORS.pink }}>Terms of Service</Text> and{' '}
+        <Text style={{ color: COLORS.pink }}>Privacy Policy</Text>.
       </Text>
 
       <GradientButton
@@ -89,40 +115,3 @@ export default function SignUpScreen() {
     </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  heading: {
-    fontFamily: FONTS.serif,
-    fontSize: 22,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-    marginBottom: SPACING.sm
-  },
-  sub: {
-    fontSize: 12,
-    fontFamily: FONTS.sans,
-    color: COLORS.textMuted,
-    lineHeight: 18,
-    marginBottom: SPACING.xl
-  },
-  input: {
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    color: COLORS.textPrimary,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.15)',
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    marginBottom: 12,
-    fontFamily: FONTS.sans,
-    fontSize: 14
-  },
-  terms: {
-    fontSize: 11,
-    color: COLORS.textMuted,
-    fontFamily: FONTS.sans,
-    lineHeight: 17,
-    marginBottom: SPACING.lg
-  },
-  link: { color: COLORS.pink }
-});

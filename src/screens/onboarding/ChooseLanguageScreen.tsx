@@ -1,16 +1,14 @@
 // src/screens/onboarding/ChooseLanguageScreen.tsx
 
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { ProgressDots, GradientButton, GhostButton } from '../../components/UI';
 import {
   LANGUAGES,
   COLORS,
-  FONTS,
-  SPACING,
-  RADIUS
+  FONTS
 } from '../../constants/theme';
 import { useApp } from '../../context/AppContext';
 
@@ -33,32 +31,42 @@ export default function ChooseLanguageScreen() {
     <ScreenWrapper>
       <ProgressDots total={4} current={1} />
 
-      <Text style={styles.heading}>Choose your language</Text>
-      <Text style={styles.sub}>
+      <Text className="mb-2 text-[22px] text-textPrimary" style={{ fontFamily: FONTS.serif, fontWeight: '600' }}>
+        Choose your language
+      </Text>
+      <Text className="mb-4 text-[12px] leading-[18px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
         Nirogya works fully in your preferred language — questions, results,
         everything.
       </Text>
 
       {/* Main 8 languages in 2-col grid */}
-      <View style={styles.grid}>
+      <View className="mb-4 flex-row flex-wrap gap-2">
         {MAIN_LANGS.map((lang) => {
           const isSel = selected === lang.code;
           return (
             <TouchableOpacity
               key={lang.code}
-              style={[styles.langCard, isSel && styles.langCardSel]}
+              className="w-[47%] items-center rounded-xl border bg-card p-3"
+              style={isSel ? { backgroundColor: COLORS.pinkBg, borderColor: COLORS.pinkBorder } : { borderColor: COLORS.border }}
               onPress={() => setSelected(lang.code)}
               activeOpacity={0.8}
             >
               <View
-                style={[styles.checkCircle, isSel && styles.checkCircleSel]}
+                className="mb-2 h-4 w-4 items-center justify-center rounded-full border"
+                style={isSel ? { backgroundColor: COLORS.gradStart, borderColor: 'transparent' } : { borderColor: COLORS.border }}
               >
-                {isSel && <Text style={styles.checkMark}>✓</Text>}
+                {isSel && <Text className="text-[9px] font-bold text-white">✓</Text>}
               </View>
-              <Text style={[styles.nativeText, isSel && styles.nativeTextSel]}>
+              <Text
+                className="mb-[3px] text-[18px] font-bold"
+                style={{ color: isSel ? COLORS.pink : COLORS.textSecondary }}
+              >
                 {lang.native}
               </Text>
-              <Text style={[styles.engText, isSel && styles.engTextSel]}>
+              <Text
+                className="text-[11px]"
+                style={{ color: isSel ? COLORS.pink : COLORS.textMuted, fontFamily: FONTS.sans }}
+              >
                 {lang.english}
               </Text>
             </TouchableOpacity>
@@ -67,25 +75,32 @@ export default function ChooseLanguageScreen() {
       </View>
 
       {/* Divider */}
-      <View style={styles.divider}>
-        <View style={styles.divLine} />
-        <Text style={styles.divText}>also available</Text>
-        <View style={styles.divLine} />
+      <View className="mb-3 flex-row items-center gap-2">
+        <View className="h-[0.5px] flex-1 bg-borderSoft" />
+        <Text className="text-[11px] text-textHint" style={{ fontFamily: FONTS.sans }}>
+          also available
+        </Text>
+        <View className="h-[0.5px] flex-1 bg-borderSoft" />
       </View>
 
       {/* Extra languages as chips */}
-      <View style={styles.extraRow}>
+      <View className="mb-6 flex-row flex-wrap gap-2">
         {EXTRA_LANGS.map((lang) => {
           const isSel = selected === lang.code;
           return (
             <TouchableOpacity
               key={lang.code}
-              style={[styles.extraChip, isSel && styles.extraChipSel]}
+              className="rounded-full border px-3 py-[6px]"
+              style={isSel ? { backgroundColor: COLORS.pinkBg, borderColor: COLORS.pinkBorder } : { backgroundColor: COLORS.bgCard, borderColor: COLORS.border }}
               onPress={() => setSelected(lang.code)}
               activeOpacity={0.8}
             >
               <Text
-                style={[styles.extraChipText, isSel && styles.extraChipTextSel]}
+                className="text-[12px]"
+                style={{
+                  color: isSel ? COLORS.pink : COLORS.textMuted,
+                  fontFamily: FONTS.sans
+                }}
               >
                 {lang.native} {lang.english}
               </Text>
@@ -107,97 +122,3 @@ export default function ChooseLanguageScreen() {
     </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  heading: {
-    fontFamily: FONTS.serif,
-    fontSize: 22,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-    marginBottom: SPACING.sm
-  },
-  sub: {
-    fontSize: 12,
-    fontFamily: FONTS.sans,
-    color: COLORS.textMuted,
-    lineHeight: 18,
-    marginBottom: SPACING.lg
-  },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: SPACING.sm,
-    marginBottom: SPACING.lg
-  },
-  langCard: {
-    width: '47%',
-    borderRadius: RADIUS.lg,
-    padding: SPACING.md,
-    backgroundColor: COLORS.bgCard,
-    borderWidth: 0.5,
-    borderColor: COLORS.border,
-    alignItems: 'center'
-  },
-  langCardSel: {
-    backgroundColor: COLORS.pinkBg,
-    borderColor: COLORS.pinkBorder
-  },
-  checkCircle: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    borderWidth: 0.5,
-    borderColor: COLORS.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: SPACING.sm
-  },
-  checkCircleSel: {
-    backgroundColor: COLORS.gradStart,
-    borderColor: 'transparent'
-  },
-  checkMark: { color: '#fff', fontSize: 9, fontWeight: '700' },
-  nativeText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.textSecondary,
-    marginBottom: 3
-  },
-  nativeTextSel: { color: COLORS.pink },
-  engText: { fontSize: 11, color: COLORS.textMuted, fontFamily: FONTS.sans },
-  engTextSel: { color: 'rgba(249,168,201,0.6)' },
-
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.sm,
-    marginBottom: SPACING.md
-  },
-  divLine: { flex: 1, height: 0.5, backgroundColor: COLORS.border },
-  divText: { fontSize: 11, color: COLORS.textHint, fontFamily: FONTS.sans },
-
-  extraRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: SPACING.sm,
-    marginBottom: SPACING.xl
-  },
-  extraChip: {
-    paddingHorizontal: SPACING.md,
-    paddingVertical: 6,
-    borderRadius: RADIUS.full,
-    borderWidth: 0.5,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.bgCard
-  },
-  extraChipSel: {
-    backgroundColor: COLORS.pinkBg,
-    borderColor: COLORS.pinkBorder
-  },
-  extraChipText: {
-    fontSize: 12,
-    color: COLORS.textMuted,
-    fontFamily: FONTS.sans
-  },
-  extraChipTextSel: { color: COLORS.pink, fontWeight: '500' }
-});

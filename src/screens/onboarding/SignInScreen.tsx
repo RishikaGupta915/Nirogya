@@ -1,11 +1,11 @@
 // src/screens/onboarding/SignInScreen.tsx
 
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Alert, TextInput } from 'react-native';
+import { View, Text, Alert, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { GradientButton, GhostButton } from '../../components/UI';
-import { COLORS, FONTS, SPACING } from '../../constants/theme';
+import { COLORS, FONTS } from '../../constants/theme';
 import { saveLanguage, signIn } from '../../services/authService';
 import { useApp } from '../../context/AppContext';
 
@@ -32,17 +32,29 @@ export default function SignInScreen() {
 
   return (
     <ScreenWrapper>
-      <View style={styles.logoRow}>
-        <Text style={styles.logo}>Nirogya</Text>
+      <View className="items-center py-6">
+        <Text className="text-[28px] text-textPrimary" style={{ fontFamily: FONTS.serif, fontWeight: '600' }}>
+          Nirogya
+        </Text>
       </View>
 
-      <Text style={styles.heading}>Welcome back</Text>
-      <Text style={styles.sub}>
+      <Text className="mb-2 text-[22px] text-textPrimary" style={{ fontFamily: FONTS.serif, fontWeight: '600' }}>
+        Welcome back
+      </Text>
+      <Text className="mb-6 text-[12px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
         Sign in with your email to continue your health journey.
       </Text>
 
       <TextInput
-        style={styles.input}
+        className="mb-3 rounded-[14px] border border-borderSoft bg-card px-[14px] py-3 text-[14px] text-textPrimary"
+        style={{
+          fontFamily: FONTS.sans,
+          shadowColor: '#2f4b84',
+          shadowOffset: { width: 0, height: 5 },
+          shadowOpacity: 0.08,
+          shadowRadius: 10,
+          elevation: 2
+        }}
         placeholder="Email"
         placeholderTextColor={COLORS.textMuted}
         keyboardType="email-address"
@@ -52,7 +64,15 @@ export default function SignInScreen() {
       />
 
       <TextInput
-        style={styles.input}
+        className="mb-3 rounded-[14px] border border-borderSoft bg-card px-[14px] py-3 text-[14px] text-textPrimary"
+        style={{
+          fontFamily: FONTS.sans,
+          shadowColor: '#2f4b84',
+          shadowOffset: { width: 0, height: 5 },
+          shadowOpacity: 0.08,
+          shadowRadius: 10,
+          elevation: 2
+        }}
         placeholder="Password"
         placeholderTextColor={COLORS.textMuted}
         secureTextEntry
@@ -70,38 +90,3 @@ export default function SignInScreen() {
     </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  logoRow: { alignItems: 'center', paddingVertical: SPACING.xl },
-  logo: {
-    fontFamily: FONTS.serif,
-    fontSize: 28,
-    color: COLORS.pink,
-    fontWeight: '600'
-  },
-  heading: {
-    fontFamily: FONTS.serif,
-    fontSize: 22,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-    marginBottom: SPACING.sm
-  },
-  sub: {
-    fontSize: 12,
-    fontFamily: FONTS.sans,
-    color: COLORS.textMuted,
-    marginBottom: SPACING.xl
-  },
-  input: {
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    color: COLORS.textPrimary,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.15)',
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    marginBottom: 12,
-    fontFamily: FONTS.sans,
-    fontSize: 14
-  }
-});

@@ -2,54 +2,54 @@
 
 export const COLORS = {
   // Backgrounds
-  bg:         '#0f0914',
-  bgCard:     'rgba(255,255,255,0.04)',
-  bgCardHover:'rgba(255,255,255,0.07)',
-  bgOverlay:  'rgba(15,9,20,0.95)',
+  bg:         '#f4f8ff',
+  bgCard:     'rgba(255,255,255,0.82)',
+  bgCardHover:'#ffffff',
+  bgOverlay:  '#edf4ff',
 
   // Brand gradient stops
-  gradStart:  '#e879a0',
-  gradMid:    '#c084fc',
-  gradEnd:    '#818cf8',
+  gradStart:  '#ff6b8a',
+  gradMid:    '#ff9f5a',
+  gradEnd:    '#4bc6d7',
 
   // Accent colours (per category)
-  pink:       '#f9a8c9',
-  pinkBg:     'rgba(232,121,160,0.12)',
-  pinkBorder: 'rgba(232,121,160,0.35)',
+  pink:       '#d5457a',
+  pinkBg:     'rgba(255,107,138,0.14)',
+  pinkBorder: 'rgba(255,107,138,0.34)',
 
-  purple:     '#c084fc',
-  purpleBg:   'rgba(192,132,252,0.12)',
-  purpleBorder:'rgba(192,132,252,0.3)',
+  purple:     '#7c5cf5',
+  purpleBg:   'rgba(124,92,245,0.14)',
+  purpleBorder:'rgba(124,92,245,0.32)',
 
-  teal:       '#6ee7b7',
-  tealBg:     'rgba(52,211,153,0.10)',
-  tealBorder: 'rgba(52,211,153,0.28)',
+  teal:       '#0f9c9f',
+  tealBg:     'rgba(75,198,215,0.14)',
+  tealBorder: 'rgba(75,198,215,0.3)',
 
-  amber:      '#fde68a',
-  amberBg:    'rgba(251,191,36,0.10)',
-  amberBorder:'rgba(251,191,36,0.25)',
+  amber:      '#bc7800',
+  amberBg:    'rgba(255,179,71,0.16)',
+  amberBorder:'rgba(255,179,71,0.34)',
 
-  indigo:     '#a5b4fc',
-  indigoBg:   'rgba(129,140,248,0.12)',
-  indigoBorder:'rgba(129,140,248,0.3)',
+  indigo:     '#4169e1',
+  indigoBg:   'rgba(65,105,225,0.14)',
+  indigoBorder:'rgba(65,105,225,0.3)',
 
-  red:        '#fca5a5',
-  redBg:      'rgba(251,113,133,0.10)',
-  redBorder:  'rgba(251,113,133,0.25)',
+  red:        '#dd3f5e',
+  redBg:      'rgba(221,63,94,0.13)',
+  redBorder:  'rgba(221,63,94,0.32)',
 
-  blue:       '#93c5fd',
-  blueBg:     'rgba(96,165,250,0.07)',
-  blueBorder: 'rgba(96,165,250,0.3)',
+  blue:       '#1f7acc',
+  blueBg:     'rgba(31,122,204,0.13)',
+  blueBorder: 'rgba(31,122,204,0.32)',
 
   // Text
-  textPrimary:   'rgba(255,255,255,0.92)',
-  textSecondary: 'rgba(255,255,255,0.60)',
-  textMuted:     'rgba(255,255,255,0.35)',
-  textHint:      'rgba(255,255,255,0.22)',
+  textPrimary:   '#17233b',
+  textSecondary: '#324261',
+  textMuted:     '#5f7398',
+  textHint:      '#8ea2c4',
 
   // Borders
-  border:        'rgba(255,255,255,0.08)',
-  borderMed:     'rgba(255,255,255,0.12)',
+  border:        'rgba(34,63,115,0.14)',
+  borderMed:     'rgba(34,63,115,0.2)',
 
   // Risk levels
   riskLow:       '#34d399',
@@ -78,6 +78,77 @@ export const RADIUS = {
   lg:   16,
   xl:   20,
   full: 999,
+};
+
+export const BRAND_GRADIENT = [
+  COLORS.gradStart,
+  COLORS.gradMid,
+  COLORS.gradEnd
+] as const;
+
+export const SCREEN_BG_GRADIENT = ['#f7fbff', '#eff5ff', '#f8f6ff'] as const;
+
+export type CategoryColor =
+  | 'pink'
+  | 'purple'
+  | 'teal'
+  | 'amber'
+  | 'indigo'
+  | 'red'
+  | 'blue';
+
+export const CATEGORY_COLORS: Record<
+  CategoryColor,
+  { bg: string; border: string; text: string; icon: string }
+> = {
+  pink: {
+    bg: COLORS.pinkBg,
+    border: COLORS.pinkBorder,
+    text: COLORS.pink,
+    icon: COLORS.pink
+  },
+  purple: {
+    bg: COLORS.purpleBg,
+    border: COLORS.purpleBorder,
+    text: COLORS.purple,
+    icon: COLORS.purple
+  },
+  teal: {
+    bg: COLORS.tealBg,
+    border: COLORS.tealBorder,
+    text: COLORS.teal,
+    icon: COLORS.teal
+  },
+  amber: {
+    bg: COLORS.amberBg,
+    border: COLORS.amberBorder,
+    text: COLORS.amber,
+    icon: COLORS.amber
+  },
+  indigo: {
+    bg: COLORS.indigoBg,
+    border: COLORS.indigoBorder,
+    text: COLORS.indigo,
+    icon: COLORS.indigo
+  },
+  red: {
+    bg: COLORS.redBg,
+    border: COLORS.redBorder,
+    text: COLORS.red,
+    icon: COLORS.red
+  },
+  blue: {
+    bg: COLORS.blueBg,
+    border: COLORS.blueBorder,
+    text: COLORS.blue,
+    icon: COLORS.blue
+  }
+};
+
+export const RISK_COLORS: Record<'low' | 'medium' | 'high', string> = {
+  low: COLORS.riskLow,
+  medium: COLORS.riskMed,
+  high: COLORS.riskHigh
 };
 
 export const SYMPTOM_CATEGORIES = [

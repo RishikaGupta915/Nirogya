@@ -1,7 +1,7 @@
 // src/screens/onboarding/ProfileReadyScreen.tsx
 
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -10,8 +10,6 @@ import { useApp } from '../../context/AppContext';
 import {
   COLORS,
   FONTS,
-  SPACING,
-  RADIUS,
   GREETINGS,
   LANGUAGES
 } from '../../constants/theme';
@@ -36,24 +34,41 @@ export default function ProfileReadyScreen() {
   return (
     <ScreenWrapper>
       {/* Success circle */}
-      <View style={styles.heroCircle}>
+      <View
+        className="mb-4 mt-6 h-[72px] w-[72px] self-center items-center justify-center rounded-full border"
+        style={{ backgroundColor: 'rgba(52,211,153,0.12)', borderColor: 'rgba(52,211,153,0.3)' }}
+      >
         <MaterialCommunityIcons name="check-circle-outline" size={32} color={COLORS.teal} />
       </View>
 
-      <Text style={styles.greeting}>{greeting}, {userProfile.name ?? 'there'}!</Text>
-      <Text style={styles.sub}>
+      <Text className="mb-2 text-center text-[24px] text-textPrimary" style={{ fontFamily: FONTS.serif, fontWeight: '600' }}>
+        {greeting}, {userProfile.name ?? 'there'}!
+      </Text>
+      <Text className="mb-2 text-center text-[13px] leading-5 text-textSecondary" style={{ fontFamily: FONTS.sans }}>
         You&apos;re all set. Nirogya is ready in{' '}
         <Text style={{ color: COLORS.pink, fontFamily: FONTS.sansBold }}>{langLabel}</Text> for you.
       </Text>
-      <Text style={styles.hint}>You can update your language and profile anytime from settings.</Text>
+      <Text className="mb-6 text-center text-[11px] leading-[17px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
+        You can update your language and profile anytime from settings.
+      </Text>
 
       {/* Setup summary card */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>YOUR SETUP</Text>
+      <View className="mb-6 rounded-xl border border-borderSoft bg-card px-4">
+        <Text className="py-3 text-[9px] uppercase tracking-[1px] text-textHint" style={{ fontFamily: FONTS.sansBold }}>
+          YOUR SETUP
+        </Text>
         {summaryRows.map((row, i) => (
-          <View key={row.label} style={[styles.cardRow, i < summaryRows.length - 1 && styles.cardBorder]}>
-            <Text style={styles.cardLabel}>{row.label}</Text>
-            <Text style={styles.cardValue}>{row.value}</Text>
+          <View
+            key={row.label}
+            className="flex-row items-center justify-between py-3"
+            style={i < summaryRows.length - 1 ? { borderBottomWidth: 0.5, borderBottomColor: COLORS.border } : undefined}
+          >
+            <Text className="text-[12px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
+              {row.label}
+            </Text>
+            <Text className="text-[12px] text-textSecondary" style={{ fontFamily: FONTS.sansBold }}>
+              {row.value}
+            </Text>
           </View>
         ))}
       </View>
@@ -65,42 +80,3 @@ export default function ProfileReadyScreen() {
     </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  heroCircle: {
-    width: 72, height: 72, borderRadius: 36,
-    backgroundColor: 'rgba(52,211,153,0.12)',
-    borderWidth: 1.5, borderColor: 'rgba(52,211,153,0.3)',
-    alignItems: 'center', justifyContent: 'center',
-    alignSelf: 'center', marginTop: SPACING.xl, marginBottom: SPACING.lg,
-  },
-  greeting: {
-    fontFamily: FONTS.serif, fontSize: 24, fontWeight: '600',
-    color: COLORS.textPrimary, textAlign: 'center', marginBottom: SPACING.sm,
-  },
-  sub: {
-    fontSize: 13, fontFamily: FONTS.sans, color: COLORS.textSecondary,
-    textAlign: 'center', lineHeight: 20, marginBottom: SPACING.sm,
-  },
-  hint: {
-    fontSize: 11, fontFamily: FONTS.sans, color: COLORS.textMuted,
-    textAlign: 'center', lineHeight: 17, marginBottom: SPACING.xl,
-  },
-  card: {
-    backgroundColor: COLORS.bgCard, borderWidth: 0.5, borderColor: COLORS.border,
-    borderRadius: RADIUS.lg, paddingHorizontal: SPACING.lg,
-    marginBottom: SPACING.xl,
-  },
-  cardTitle: {
-    fontSize: 9, letterSpacing: 1, textTransform: 'uppercase',
-    color: COLORS.textHint, fontFamily: FONTS.sansBold,
-    paddingVertical: SPACING.md,
-  },
-  cardRow: {
-    flexDirection: 'row', justifyContent: 'space-between',
-    alignItems: 'center', paddingVertical: SPACING.md,
-  },
-  cardBorder:  { borderBottomWidth: 0.5, borderBottomColor: COLORS.border },
-  cardLabel:   { fontSize: 12, fontFamily: FONTS.sans, color: COLORS.textMuted },
-  cardValue:   { fontSize: 12, fontFamily: FONTS.sansBold, color: COLORS.textSecondary },
-});

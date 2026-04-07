@@ -1,12 +1,12 @@
 // src/screens/onboarding/AboutYou2Screen.tsx  — Physical Activity
 
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { ProgressDots, ProgressBar, GradientButton, GhostButton, SectionLabel, Chip } from '../../components/UI';
-import { COLORS, FONTS, SPACING, RADIUS } from '../../constants/theme';
+import { COLORS, FONTS, SPACING } from '../../constants/theme';
 import { useApp } from '../../context/AppContext';
 
 const ACTIVITY_LEVELS = [
@@ -43,17 +43,22 @@ export default function AboutYou2Screen() {
       <ProgressDots total={5} current={1} />
       <ProgressBar current={2} total={5} />
 
-      <Text style={styles.heading}>Physical activity</Text>
-      <Text style={styles.sub}>Be honest — this shapes your health risk profile directly.</Text>
+      <Text className="mb-2 text-[20px] text-textPrimary" style={{ fontFamily: FONTS.serif, fontWeight: '600' }}>
+        Physical activity
+      </Text>
+      <Text className="mb-4 text-[12px] leading-[18px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
+        Be honest — this shapes your health risk profile directly.
+      </Text>
 
       <SectionLabel label="How active are you?" />
-      <View style={styles.actGrid}>
+      <View className="mb-2 flex-row flex-wrap gap-2">
         {ACTIVITY_LEVELS.map(a => {
           const sel = activityLevel === a.id;
           return (
             <TouchableOpacity
               key={a.id}
-              style={[styles.actCard, sel && styles.actCardSel]}
+              className="w-[47%] items-center rounded-xl border bg-card p-3"
+              style={sel ? { backgroundColor: COLORS.pinkBg, borderColor: COLORS.pinkBorder } : { borderColor: COLORS.border }}
               onPress={() => setActivityLevel(a.id)}
               activeOpacity={0.8}
             >
@@ -63,15 +68,22 @@ export default function AboutYou2Screen() {
                 color={sel ? COLORS.pink : COLORS.textMuted}
                 style={{ marginBottom: SPACING.sm }}
               />
-              <Text style={[styles.actLabel, sel && styles.actLabelSel]}>{a.label}</Text>
-              <Text style={styles.actSub}>{a.sub}</Text>
+              <Text
+                className="mb-[2px] text-center text-[12px] text-textSecondary"
+                style={{ color: sel ? COLORS.pink : COLORS.textSecondary, fontFamily: FONTS.sansBold }}
+              >
+                {a.label}
+              </Text>
+              <Text className="text-center text-[10px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
+                {a.sub}
+              </Text>
             </TouchableOpacity>
           );
         })}
       </View>
 
       <SectionLabel label="Type of exercise you do" />
-      <View style={styles.chipRow}>
+      <View className="mb-2 flex-row flex-wrap">
         {EXERCISE_TYPES.map(t => (
           <Chip
             key={t} label={t}
@@ -83,14 +95,23 @@ export default function AboutYou2Screen() {
       </View>
 
       <SectionLabel label="How many days per week?" />
-      <View style={styles.scaleRow}>
+      <View className="flex-row gap-1">
         {DAYS_OPTIONS.map(d => (
           <TouchableOpacity
             key={d}
-            style={[styles.scaleBtn, exerciseDays === d && styles.scaleBtnSel]}
+            className="h-9 flex-1 items-center justify-center rounded-md border bg-card"
+            style={exerciseDays === d ? { backgroundColor: COLORS.pinkBg, borderColor: COLORS.pinkBorder } : { borderColor: COLORS.border }}
             onPress={() => setExerciseDays(d)}
           >
-            <Text style={[styles.scaleTxt, exerciseDays === d && styles.scaleTxtSel]}>{d}</Text>
+            <Text
+              className="text-[12px]"
+              style={{
+                color: exerciseDays === d ? COLORS.pink : COLORS.textMuted,
+                fontFamily: exerciseDays === d ? FONTS.sansBold : FONTS.sans
+              }}
+            >
+              {d}
+            </Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -100,28 +121,3 @@ export default function AboutYou2Screen() {
     </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  heading:     { fontFamily: FONTS.serif, fontSize: 20, fontWeight: '600', color: COLORS.textPrimary, marginBottom: SPACING.sm },
-  sub:         { fontSize: 12, fontFamily: FONTS.sans, color: COLORS.textMuted, lineHeight: 18, marginBottom: SPACING.lg },
-  actGrid:     { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm, marginBottom: SPACING.sm },
-  actCard: {
-    width: '47%', borderRadius: RADIUS.lg, padding: SPACING.md,
-    backgroundColor: COLORS.bgCard, borderWidth: 0.5, borderColor: COLORS.border,
-    alignItems: 'center',
-  },
-  actCardSel:  { backgroundColor: COLORS.pinkBg, borderColor: COLORS.pinkBorder },
-  actLabel:    { fontSize: 12, fontFamily: FONTS.sansBold, color: COLORS.textSecondary, marginBottom: 2, textAlign: 'center' },
-  actLabelSel: { color: COLORS.pink },
-  actSub:      { fontSize: 10, fontFamily: FONTS.sans, color: COLORS.textMuted, textAlign: 'center' },
-  chipRow:     { flexDirection: 'row', flexWrap: 'wrap', marginBottom: SPACING.sm },
-  scaleRow:    { flexDirection: 'row', gap: SPACING.xs },
-  scaleBtn: {
-    flex: 1, height: 36, borderRadius: RADIUS.sm,
-    backgroundColor: COLORS.bgCard, borderWidth: 0.5, borderColor: COLORS.border,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  scaleBtnSel: { backgroundColor: COLORS.pinkBg, borderColor: COLORS.pinkBorder },
-  scaleTxt:    { fontSize: 12, color: COLORS.textMuted, fontFamily: FONTS.sans },
-  scaleTxtSel: { color: COLORS.pink, fontFamily: FONTS.sansBold },
-});

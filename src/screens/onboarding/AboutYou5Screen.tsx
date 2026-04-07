@@ -1,7 +1,7 @@
 // src/screens/onboarding/AboutYou5Screen.tsx — Medical History
 
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import {
@@ -12,7 +12,7 @@ import {
   SectionLabel,
   Chip
 } from '../../components/UI';
-import { COLORS, FONTS, SPACING, RADIUS } from '../../constants/theme';
+import { COLORS, FONTS } from '../../constants/theme';
 import { useApp } from '../../context/AppContext';
 import {
   auth,
@@ -88,7 +88,7 @@ export default function AboutYou5Screen() {
       } else {
         nav.navigate('MainTabs'); // or another authenticated screen
       }
-    } catch (_err: any) {
+    } catch {
       Alert.alert('Error', 'Could not save profile. Please try again.');
     } finally {
       setLoading(false);
@@ -100,14 +100,16 @@ export default function AboutYou5Screen() {
       <ProgressDots total={5} current={4} />
       <ProgressBar current={5} total={5} />
 
-      <Text style={styles.heading}>Medical background</Text>
-      <Text style={styles.sub}>
+      <Text className="mb-2 text-[20px] text-textPrimary" style={{ fontFamily: FONTS.serif, fontWeight: '600' }}>
+        Medical background
+      </Text>
+      <Text className="mb-4 text-[12px] leading-[18px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
         Known conditions help us flag risks you may not have linked to your
         symptoms.
       </Text>
 
       <SectionLabel label="Existing conditions (if any)" />
-      <View style={styles.chipRow}>
+      <View className="mb-2 flex-row flex-wrap">
         {CONDITIONS.map((c) => (
           <Chip
             key={c}
@@ -120,7 +122,7 @@ export default function AboutYou5Screen() {
       </View>
 
       <SectionLabel label="Family history" />
-      <View style={styles.chipRow}>
+      <View className="mb-2 flex-row flex-wrap">
         {FAMILY_HISTORY.map((f) => (
           <Chip
             key={f}
@@ -134,7 +136,8 @@ export default function AboutYou5Screen() {
 
       <SectionLabel label="Current medications (optional)" />
       <TextInput
-        style={styles.input}
+        className="mb-2 rounded-lg border border-borderSoft bg-card px-3 py-3 text-[13px] text-textPrimary"
+        style={{ fontFamily: FONTS.sans, textAlignVertical: 'top' }}
         placeholder="e.g. thyroid meds, birth control, iron tablets…"
         placeholderTextColor={COLORS.textHint}
         value={medications}
@@ -144,7 +147,7 @@ export default function AboutYou5Screen() {
       />
 
       <SectionLabel label="Allergies" />
-      <View style={styles.chipRow}>
+      <View className="mb-2 flex-row flex-wrap">
         {ALLERGIES.map((a) => (
           <Chip
             key={a}
@@ -156,8 +159,17 @@ export default function AboutYou5Screen() {
         ))}
       </View>
 
-      <View style={styles.tip}>
-        <Text style={styles.tipText}>
+      <View
+        className="mb-4 mt-3 rounded-lg border px-3 py-3"
+        style={{
+          backgroundColor: 'rgba(129,140,248,0.07)',
+          borderColor: 'rgba(129,140,248,0.18)'
+        }}
+      >
+        <Text
+          className="text-[11px] leading-[17px]"
+          style={{ color: 'rgba(165,180,252,0.7)', fontFamily: FONTS.sans }}
+        >
           This profile is built once and improves every assessment you do. You
           can update it anytime from your profile.
         </Text>
@@ -181,49 +193,3 @@ export default function AboutYou5Screen() {
     </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  heading: {
-    fontFamily: FONTS.serif,
-    fontSize: 20,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-    marginBottom: SPACING.sm
-  },
-  sub: {
-    fontSize: 12,
-    fontFamily: FONTS.sans,
-    color: COLORS.textMuted,
-    lineHeight: 18,
-    marginBottom: SPACING.lg
-  },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: SPACING.sm },
-  input: {
-    backgroundColor: COLORS.bgCard,
-    borderWidth: 0.5,
-    borderColor: COLORS.border,
-    borderRadius: RADIUS.md,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.md,
-    color: COLORS.textPrimary,
-    fontSize: 13,
-    fontFamily: FONTS.sans,
-    textAlignVertical: 'top',
-    marginBottom: SPACING.sm
-  },
-  tip: {
-    backgroundColor: 'rgba(129,140,248,0.07)',
-    borderWidth: 0.5,
-    borderColor: 'rgba(129,140,248,0.18)',
-    borderRadius: RADIUS.md,
-    padding: SPACING.md,
-    marginTop: SPACING.md,
-    marginBottom: SPACING.lg
-  },
-  tipText: {
-    fontSize: 11,
-    color: 'rgba(165,180,252,0.7)',
-    fontFamily: FONTS.sans,
-    lineHeight: 17
-  }
-});

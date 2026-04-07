@@ -6,6 +6,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { COLORS, FONTS } from '../constants/theme';
+import { UI_SHADOWS } from '../constants/ui';
 import { useApp } from '../context/AppContext';
 
 // Onboarding
@@ -40,15 +41,16 @@ function MainTabs() {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: '#0f0914',
-          borderTopWidth: 0.5,
-          borderTopColor: 'rgba(255,255,255,0.07)',
+          backgroundColor: 'rgba(255,255,255,0.94)',
+          borderTopWidth: 1,
+          borderTopColor: COLORS.border,
           paddingBottom: 16,
           paddingTop: 10,
-          height: 68
+          height: 68,
+          ...UI_SHADOWS.tabBar,
         },
-        tabBarActiveTintColor: COLORS.pink,
-        tabBarInactiveTintColor: 'rgba(255,255,255,0.25)',
+        tabBarActiveTintColor: COLORS.gradStart,
+        tabBarInactiveTintColor: COLORS.textHint,
         tabBarLabelStyle: {
           fontFamily: FONTS.sans,
           fontSize: 10,
@@ -99,7 +101,7 @@ export default function AppNavigator() {
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
-        cardStyle: { backgroundColor: '#0f0914' }
+        cardStyle: { backgroundColor: COLORS.bg }
       }}
     >
       {!user ? (

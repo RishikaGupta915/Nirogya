@@ -1,25 +1,10 @@
-// src/screens/main/ProfileScreen.tsx
-
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Switch,
-  Alert,
-  ScrollView
-} from 'react-native';
+import { View, Text, TouchableOpacity, Switch, Alert, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import {
-  COLORS,
-  FONTS,
-  SPACING,
-  RADIUS,
-  LANGUAGES
-} from '../../constants/theme';
+import { COLORS, FONTS, LANGUAGES } from '../../constants/theme';
+import { UI_CLASSES, UI_SHADOWS } from '../../constants/ui';
 import { useApp } from '../../context/AppContext';
 import { auth, logOut, saveLanguage } from '../../services/authService';
 
@@ -60,45 +45,73 @@ export default function ProfileScreen() {
   };
 
   const selectedLang = userProfile.language ?? 'en';
+  const completionScore = [
+    userProfile.ageGroup,
+    userProfile.activityLevel,
+    userProfile.dietType,
+    userProfile.city
+  ].filter(Boolean).length;
 
   return (
     <ScreenWrapper>
-      {/* Avatar */}
-      <View style={styles.avatarSection}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{initials}</Text>
+      <View className="items-center py-6">
+        <View
+          className="mb-3 h-[60px] w-[60px] items-center justify-center rounded-full border bg-card"
+          style={{
+            borderColor: COLORS.pinkBorder,
+            ...UI_SHADOWS.strong
+          }}
+        >
+          <Text className="text-[22px] text-[#d5457a]" style={{ fontFamily: FONTS.serif, fontWeight: '600' }}>
+            {initials}
+          </Text>
         </View>
-        <Text style={styles.name}>{name}</Text>
-        <Text style={styles.email}>{auth.currentUser?.email ?? ''}</Text>
+        <Text className="mb-1 text-[18px] text-textPrimary" style={{ fontFamily: FONTS.serif }}>
+          {name}
+        </Text>
+        <Text className="mb-[2px] text-[12px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
+          {auth.currentUser?.email ?? ''}
+        </Text>
         {userProfile.ageGroup && (
-          <Text style={styles.meta}>
+          <Text className="text-[11px] text-textHint" style={{ fontFamily: FONTS.sans }}>
             {userProfile.ageGroup} yrs · {userProfile.city ?? 'India'}
           </Text>
         )}
+        <View className="mt-2 rounded-full border border-borderSoft bg-white/80 px-3 py-[6px]">
+          <Text className="text-[11px] text-textSecondary" style={{ fontFamily: FONTS.sans }}>
+            Profile strength: {completionScore}/4
+          </Text>
+        </View>
       </View>
 
-      {/* Language */}
-      <Text style={styles.sectionLabel}>LANGUAGE</Text>
-      <View style={styles.card}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={{ marginBottom: 4 }}
-        >
-          <View style={styles.langRow}>
+      <Text className="mb-2 mt-4 text-[9px] uppercase tracking-[1px] text-textHint" style={{ fontFamily: FONTS.sansBold }}>
+        LANGUAGE
+      </Text>
+      <View
+        className={UI_CLASSES.profileBlock}
+        style={UI_SHADOWS.medium}
+      >
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 4 }}>
+          <View className="flex-row gap-2 py-3">
             {LANGUAGES.map((lang) => {
               const isSel = selectedLang === lang.code;
               return (
                 <TouchableOpacity
                   key={lang.code}
-                  style={[styles.langChip, isSel && styles.langChipSel]}
+                  className="rounded-full border px-3 py-[6px]"
+                  style={
+                    isSel
+                      ? { backgroundColor: COLORS.pinkBg, borderColor: COLORS.pinkBorder }
+                      : { backgroundColor: 'rgba(255,255,255,0.8)', borderColor: COLORS.border }
+                  }
                   onPress={() => handleLangChange(lang.code)}
                 >
                   <Text
-                    style={[
-                      styles.langChipText,
-                      isSel && styles.langChipTextSel
-                    ]}
+                    className="text-[13px]"
+                    style={{
+                      color: isSel ? COLORS.pink : COLORS.textMuted,
+                      fontFamily: isSel ? FONTS.sansBold : FONTS.sans
+                    }}
                   >
                     {lang.native}
                   </Text>
@@ -109,9 +122,13 @@ export default function ProfileScreen() {
         </ScrollView>
       </View>
 
-      {/* Profile info shortcut */}
-      <Text style={styles.sectionLabel}>MY PROFILE</Text>
-      <View style={styles.card}>
+      <Text className="mb-2 mt-4 text-[9px] uppercase tracking-[1px] text-textHint" style={{ fontFamily: FONTS.sansBold }}>
+        MY PROFILE
+      </Text>
+      <View
+        className={UI_CLASSES.profileBlock}
+        style={UI_SHADOWS.medium}
+      >
         {[
           { label: 'Activity level', value: userProfile.activityLevel ?? '—' },
           { label: 'Diet type', value: userProfile.dietType ?? '—' },
@@ -122,28 +139,35 @@ export default function ProfileScreen() {
         ].map((row, i, arr) => (
           <View
             key={row.label}
-            style={[styles.settingRow, i < arr.length - 1 && styles.rowBorder]}
+            className="flex-row items-center gap-3 py-3"
+            style={i < arr.length - 1 ? { borderBottomWidth: 0.5, borderBottomColor: COLORS.border } : undefined}
           >
-            <Text style={styles.settingLabel}>{row.label}</Text>
-            <Text style={styles.settingVal}>{row.value}</Text>
+            <Text className="flex-1 text-[13px] text-textSecondary" style={{ fontFamily: FONTS.sans }}>
+              {row.label}
+            </Text>
+            <Text className="text-[12px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
+              {row.value}
+            </Text>
           </View>
         ))}
         <TouchableOpacity
-          style={[
-            styles.settingRow,
-            { borderTopWidth: 0.5, borderTopColor: COLORS.border }
-          ]}
+          className="flex-row items-center gap-3 py-3"
+          style={{ borderTopWidth: 0.5, borderTopColor: COLORS.border }}
           onPress={() => nav.navigate('AboutYou1')}
         >
-          <Text style={[styles.settingLabel, { color: COLORS.pink }]}>
+          <Text className="flex-1 text-[13px]" style={{ color: COLORS.pink, fontFamily: FONTS.sans }}>
             Edit profile →
           </Text>
         </TouchableOpacity>
       </View>
 
-      {/* Notifications */}
-      <Text style={styles.sectionLabel}>NOTIFICATIONS</Text>
-      <View style={styles.card}>
+      <Text className="mb-2 mt-4 text-[9px] uppercase tracking-[1px] text-textHint" style={{ fontFamily: FONTS.sansBold }}>
+        NOTIFICATIONS
+      </Text>
+      <View
+        className={UI_CLASSES.profileBlock}
+        style={UI_SHADOWS.medium}
+      >
         {[
           {
             label: 'Period reminders',
@@ -166,11 +190,16 @@ export default function ProfileScreen() {
         ].map((item, i, arr) => (
           <View
             key={item.label}
-            style={[styles.settingRow, i < arr.length - 1 && styles.rowBorder]}
+            className="flex-row items-center gap-3 py-3"
+            style={i < arr.length - 1 ? { borderBottomWidth: 0.5, borderBottomColor: COLORS.border } : undefined}
           >
             <View style={{ flex: 1 }}>
-              <Text style={styles.settingLabel}>{item.label}</Text>
-              <Text style={styles.settingSubLabel}>{item.sub}</Text>
+              <Text className="text-[13px] text-textSecondary" style={{ fontFamily: FONTS.sans }}>
+                {item.label}
+              </Text>
+              <Text className="mt-[2px] text-[10px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
+                {item.sub}
+              </Text>
             </View>
             <Switch
               value={item.val}
@@ -182,150 +211,37 @@ export default function ProfileScreen() {
         ))}
       </View>
 
-      {/* Data & Privacy */}
-      <Text style={styles.sectionLabel}>LEGAL</Text>
-      <View style={styles.card}>
-        {['Privacy policy', 'Terms of service', 'Data & permissions'].map(
-          (item, i, arr) => (
-            <TouchableOpacity
-              key={item}
-              style={[
-                styles.settingRow,
-                i < arr.length - 1 && styles.rowBorder
-              ]}
-            >
-              <Text style={styles.settingLabel}>{item}</Text>
-              <MaterialCommunityIcons
-                name="chevron-right"
-                size={16}
-                color={COLORS.textMuted}
-              />
-            </TouchableOpacity>
-          )
-        )}
+      <Text className="mb-2 mt-4 text-[9px] uppercase tracking-[1px] text-textHint" style={{ fontFamily: FONTS.sansBold }}>
+        LEGAL
+      </Text>
+      <View
+        className={UI_CLASSES.profileBlock}
+        style={UI_SHADOWS.medium}
+      >
+        {['Privacy policy', 'Terms of service', 'Data & permissions'].map((item, i, arr) => (
+          <TouchableOpacity
+            key={item}
+            className="flex-row items-center gap-3 py-3"
+            style={i < arr.length - 1 ? { borderBottomWidth: 0.5, borderBottomColor: COLORS.border } : undefined}
+          >
+            <Text className="flex-1 text-[13px] text-textSecondary" style={{ fontFamily: FONTS.sans }}>
+              {item}
+            </Text>
+            <MaterialCommunityIcons name="chevron-right" size={16} color={COLORS.textMuted} />
+          </TouchableOpacity>
+        ))}
       </View>
 
-      {/* Sign out */}
-      <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+      <TouchableOpacity className="flex-row items-center justify-center gap-2 py-4" onPress={handleLogout}>
         <MaterialCommunityIcons name="logout" size={16} color={COLORS.red} />
-        <Text style={styles.logoutText}>Sign out</Text>
+        <Text className="text-[14px]" style={{ color: COLORS.red, fontFamily: FONTS.sansBold }}>
+          Sign out
+        </Text>
       </TouchableOpacity>
 
-      <Text style={styles.version}>
+      <Text className="pb-4 text-center text-[10px] text-textHint" style={{ fontFamily: FONTS.sans }}>
         Nirogya v1.0 · Made with care for Indian women
       </Text>
     </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  avatarSection: { alignItems: 'center', paddingVertical: SPACING.xl },
-  avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: COLORS.pinkBg,
-    borderWidth: 1.5,
-    borderColor: COLORS.pinkBorder,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: SPACING.md
-  },
-  avatarText: {
-    fontFamily: FONTS.serif,
-    fontSize: 22,
-    color: COLORS.pink,
-    fontWeight: '600'
-  },
-  name: {
-    fontFamily: FONTS.serif,
-    fontSize: 18,
-    color: COLORS.textPrimary,
-    marginBottom: 4
-  },
-  email: {
-    fontSize: 12,
-    fontFamily: FONTS.sans,
-    color: COLORS.textMuted,
-    marginBottom: 2
-  },
-  meta: { fontSize: 11, fontFamily: FONTS.sans, color: COLORS.textHint },
-
-  sectionLabel: {
-    fontSize: 9,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: COLORS.textHint,
-    fontFamily: FONTS.sansBold,
-    marginBottom: SPACING.sm,
-    marginTop: SPACING.lg
-  },
-  card: {
-    backgroundColor: COLORS.bgCard,
-    borderWidth: 0.5,
-    borderColor: COLORS.border,
-    borderRadius: RADIUS.lg,
-    paddingHorizontal: SPACING.md,
-    marginBottom: SPACING.sm
-  },
-  langRow: {
-    flexDirection: 'row',
-    gap: SPACING.sm,
-    paddingVertical: SPACING.md
-  },
-  langChip: {
-    paddingHorizontal: SPACING.md,
-    paddingVertical: 6,
-    borderRadius: RADIUS.full,
-    borderWidth: 0.5,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.bgCard
-  },
-  langChipSel: {
-    backgroundColor: COLORS.pinkBg,
-    borderColor: COLORS.pinkBorder
-  },
-  langChipText: {
-    fontSize: 13,
-    color: COLORS.textMuted,
-    fontFamily: FONTS.sans
-  },
-  langChipTextSel: { color: COLORS.pink, fontFamily: FONTS.sansBold },
-
-  settingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: SPACING.md,
-    gap: SPACING.md
-  },
-  rowBorder: { borderBottomWidth: 0.5, borderBottomColor: COLORS.border },
-  settingLabel: {
-    flex: 1,
-    fontSize: 13,
-    fontFamily: FONTS.sans,
-    color: COLORS.textSecondary
-  },
-  settingSubLabel: {
-    fontSize: 10,
-    fontFamily: FONTS.sans,
-    color: COLORS.textMuted,
-    marginTop: 2
-  },
-  settingVal: { fontSize: 12, fontFamily: FONTS.sans, color: COLORS.textMuted },
-
-  logoutBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: SPACING.sm,
-    paddingVertical: SPACING.lg
-  },
-  logoutText: { fontSize: 14, fontFamily: FONTS.sansBold, color: COLORS.red },
-  version: {
-    fontSize: 10,
-    fontFamily: FONTS.sans,
-    color: COLORS.textHint,
-    textAlign: 'center',
-    paddingBottom: SPACING.lg
-  }
-});

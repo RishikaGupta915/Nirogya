@@ -1,11 +1,11 @@
 // src/screens/onboarding/AboutYou3Screen.tsx — Diet & Nutrition
 
 import React, { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { ProgressDots, ProgressBar, GradientButton, GhostButton, SectionLabel, Chip } from '../../components/UI';
-import { COLORS, FONTS, SPACING } from '../../constants/theme';
+import { FONTS, SPACING } from '../../constants/theme';
 import { useApp } from '../../context/AppContext';
 
 const DIET_TYPES    = ['Vegetarian', 'Eggetarian', 'Non-veg', 'Vegan', 'Halal', 'No rules'];
@@ -36,32 +36,36 @@ export default function AboutYou3Screen() {
       <ProgressDots total={5} current={2} />
       <ProgressBar current={3} total={5} />
 
-      <Text style={styles.heading}>Diet & nutrition</Text>
-      <Text style={styles.sub}>Common deficiencies in Indian women are tied directly to food habits.</Text>
+      <Text className="mb-2 text-[20px] text-textPrimary" style={{ fontFamily: FONTS.serif, fontWeight: '600' }}>
+        Diet & nutrition
+      </Text>
+      <Text className="mb-4 text-[12px] leading-[18px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
+        Common deficiencies in Indian women are tied directly to food habits.
+      </Text>
 
       <SectionLabel label="Diet type" />
-      <View style={styles.chipRow}>
+      <View className="mb-2 flex-row flex-wrap">
         {DIET_TYPES.map(d => (
           <Chip key={d} label={d} selected={dietType === d} color="amber" onPress={() => setDietType(d)} />
         ))}
       </View>
 
       <SectionLabel label="Meals per day" />
-      <View style={styles.chipRow}>
+      <View className="mb-2 flex-row flex-wrap">
         {MEALS.map(m => (
           <Chip key={m} label={m} selected={mealsPerDay === m} color="teal" onPress={() => setMealsPerDay(m)} />
         ))}
       </View>
 
       <SectionLabel label="Do you experience any of these?" />
-      <View style={styles.chipRow}>
+      <View className="mb-2 flex-row flex-wrap">
         {DIET_HABITS.map(h => (
           <Chip key={h} label={h} selected={dietHabits.includes(h)} color="amber" onPress={() => toggle(dietHabits, setDietHabits, h)} />
         ))}
       </View>
 
       <SectionLabel label="Do you take supplements?" />
-      <View style={styles.chipRow}>
+      <View className="mb-2 flex-row flex-wrap">
         {SUPPLEMENTS.map(s => (
           <Chip key={s} label={s} selected={supplements.includes(s)} color="teal" onPress={() => toggle(supplements, setSupplements, s)} />
         ))}
@@ -72,9 +76,3 @@ export default function AboutYou3Screen() {
     </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  heading:  { fontFamily: FONTS.serif, fontSize: 20, fontWeight: '600', color: COLORS.textPrimary, marginBottom: SPACING.sm },
-  sub:      { fontSize: 12, fontFamily: FONTS.sans, color: COLORS.textMuted, lineHeight: 18, marginBottom: SPACING.lg },
-  chipRow:  { flexDirection: 'row', flexWrap: 'wrap', marginBottom: SPACING.sm },
-});

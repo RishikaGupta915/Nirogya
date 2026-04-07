@@ -1,17 +1,23 @@
 // src/components/UI.tsx
 
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   TouchableOpacity,
   Text,
   View,
-  StyleSheet,
   ActivityIndicator,
   ViewStyle,
-  TextStyle
+  TextStyle,
+  Animated
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { COLORS, FONTS, SPACING, RADIUS } from '../constants/theme';
+import {
+  BRAND_GRADIENT,
+  CATEGORY_COLORS,
+  COLORS,
+  FONTS
+} from '../constants/theme';
+import { UI_SHADOWS } from '../constants/ui';
 
 // ── GradientButton ────────────────────────────────────────────
 interface GradButtonProps {
@@ -29,26 +35,55 @@ export function GradientButton({
   disabled,
   style
 }: GradButtonProps) {
+  const scale = useRef(new Animated.Value(1)).current;
+
+  const animateTo = (toValue: number) => {
+    Animated.spring(scale, {
+      toValue,
+      speed: 28,
+      bounciness: 3,
+      useNativeDriver: true
+    }).start();
+  };
+
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      disabled={disabled || loading}
-      activeOpacity={0.85}
-      style={[{ borderRadius: RADIUS.lg, overflow: 'hidden' }, style]}
-    >
-      <LinearGradient
-        colors={['#e879a0', '#9d4edd']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.gradBtn}
+    <Animated.View style={{ transform: [{ scale }] }}>
+      <TouchableOpacity
+        onPress={onPress}
+        onPressIn={() => animateTo(0.985)}
+        onPressOut={() => animateTo(1)}
+        disabled={disabled || loading}
+        activeOpacity={0.9}
+        className="overflow-hidden rounded-xl2"
+        style={[
+          UI_SHADOWS.brandGlow,
+          disabled || loading ? { opacity: 0.5 } : null,
+          style
+        ]}
       >
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.gradBtnText}>{label}</Text>
-        )}
-      </LinearGradient>
-    </TouchableOpacity>
+        <LinearGradient
+          colors={BRAND_GRADIENT}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          className="items-center px-6 py-4"
+        >
+          <View
+            className="absolute left-3 right-3 top-[2px] h-3 rounded-full"
+            style={{ backgroundColor: 'rgba(255,255,255,0.22)' }}
+          />
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text
+              className="text-[14px] tracking-[0.25px] text-white"
+              style={{ fontFamily: FONTS.sansBold }}
+            >
+              {label}
+            </Text>
+          )}
+        </LinearGradient>
+      </TouchableOpacity>
+    </Animated.View>
   );
 }
 
@@ -60,14 +95,32 @@ interface GhostButtonProps {
 }
 
 export function GhostButton({ label, onPress, style }: GhostButtonProps) {
+  const scale = useRef(new Animated.Value(1)).current;
+
+  const animateTo = (toValue: number) => {
+    Animated.spring(scale, {
+      toValue,
+      speed: 28,
+      bounciness: 3,
+      useNativeDriver: true
+    }).start();
+  };
+
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      style={[styles.ghostBtn, style]}
-      activeOpacity={0.7}
-    >
-      <Text style={styles.ghostBtnText}>{label}</Text>
-    </TouchableOpacity>
+    <Animated.View style={{ transform: [{ scale }] }}>
+      <TouchableOpacity
+        onPress={onPress}
+        onPressIn={() => animateTo(0.99)}
+        onPressOut={() => animateTo(1)}
+        className="mt-3 items-center rounded-xl2 border border-borderMed bg-white/60 py-[13px]"
+        style={style}
+        activeOpacity={0.85}
+      >
+        <Text className="text-[12px] tracking-[0.15px] text-textSecondary" style={{ fontFamily: FONTS.sans }}>
+          {label}
+        </Text>
+      </TouchableOpacity>
+    </Animated.View>
   );
 }
 
@@ -86,21 +139,13 @@ const chipColors: Record<
   ChipColor,
   { bg: string; border: string; text: string }
 > = {
-  pink: { bg: COLORS.pinkBg, border: COLORS.pinkBorder, text: COLORS.pink },
-  purple: {
-    bg: COLORS.purpleBg,
-    border: COLORS.purpleBorder,
-    text: COLORS.purple
-  },
-  teal: { bg: COLORS.tealBg, border: COLORS.tealBorder, text: COLORS.teal },
-  amber: { bg: COLORS.amberBg, border: COLORS.amberBorder, text: COLORS.amber },
-  indigo: {
-    bg: COLORS.indigoBg,
-    border: COLORS.indigoBorder,
-    text: COLORS.indigo
-  },
-  red: { bg: COLORS.redBg, border: COLORS.redBorder, text: COLORS.red },
-  blue: { bg: COLORS.blueBg, border: COLORS.blueBorder, text: COLORS.blue },
+  pink: CATEGORY_COLORS.pink,
+  purple: CATEGORY_COLORS.purple,
+  teal: CATEGORY_COLORS.teal,
+  amber: CATEGORY_COLORS.amber,
+  indigo: CATEGORY_COLORS.indigo,
+  red: CATEGORY_COLORS.red,
+  blue: CATEGORY_COLORS.blue,
   default: {
     bg: COLORS.bgCard,
     border: COLORS.border,
@@ -128,13 +173,15 @@ export function Chip({
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.75}
+      className="m-[3px] rounded-full border px-[13px] py-[9px]"
       style={[
-        styles.chip,
         { backgroundColor: c.bg, borderColor: c.border },
         style
       ]}
     >
-      <Text style={[styles.chipText, { color: c.text }]}>{label}</Text>
+      <Text className="text-[12px]" style={[{ fontFamily: FONTS.sans }, { color: c.text }]}>
+        {label}
+      </Text>
     </TouchableOpacity>
   );
 }
@@ -147,7 +194,14 @@ export function SectionLabel({
   label: string;
   style?: TextStyle;
 }) {
-  return <Text style={[styles.sectionLabel, style]}>{label}</Text>;
+  return (
+    <Text
+      className="mb-[10px] mt-3 text-[10px] uppercase tracking-[1.1px] text-textHint"
+      style={[{ fontFamily: FONTS.sansBold }, style]}
+    >
+      {label}
+    </Text>
+  );
 }
 
 // ── InputWrap ─────────────────────────────────────────────────
@@ -159,8 +213,19 @@ interface InputWrapProps {
 
 export function InputWrap({ label, children, style }: InputWrapProps) {
   return (
-    <View style={[styles.inputWrap, style]}>
-      <Text style={styles.inputLabel}>{label}</Text>
+    <View
+      className="mb-3 rounded-xl border border-borderSoft bg-card px-[14px] py-[12px]"
+      style={[
+        UI_SHADOWS.soft,
+        style
+      ]}
+    >
+      <Text
+        className="mb-[6px] text-[10px] uppercase tracking-[0.8px] text-textHint"
+        style={{ fontFamily: FONTS.sans }}
+      >
+        {label}
+      </Text>
       {children}
     </View>
   );
@@ -174,17 +239,18 @@ interface ProgressDotsProps {
 
 export function ProgressDots({ total, current }: ProgressDotsProps) {
   return (
-    <View style={styles.dotsRow}>
+    <View className="mb-5 flex-row justify-center gap-[5px] pt-1">
       {Array.from({ length: total }).map((_, i) => {
         const isDone = i < current;
         const isActive = i === current;
         return (
           <View
             key={i}
+            className="h-[6px] w-[6px] rounded-[3px]"
             style={[
-              styles.dot,
-              isActive && styles.dotActive,
-              isDone && styles.dotDone
+              { backgroundColor: 'rgba(95,115,152,0.25)' },
+              isActive && { width: 18, borderRadius: 3, backgroundColor: COLORS.gradStart },
+              isDone && { backgroundColor: 'rgba(255,107,138,0.45)' }
             ]}
           />
         );
@@ -202,12 +268,13 @@ interface ProgressBarProps {
 export function ProgressBar({ current, total }: ProgressBarProps) {
   const pct = total > 0 ? (current / total) * 100 : 0;
   return (
-    <View style={styles.progTrack}>
+    <View className="mb-4 h-[5px] overflow-hidden rounded bg-borderSoft">
       <LinearGradient
-        colors={['#e879a0', '#9d4edd']}
+        colors={BRAND_GRADIENT}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
-        style={[styles.progFill, { width: `${pct}%` as any }]}
+        className="h-full rounded"
+        style={{ width: `${pct}%` as any }}
       />
     </View>
   );
@@ -238,105 +305,15 @@ export function RiskBadge({ level }: { level: 'low' | 'medium' | 'high' }) {
   const c = map[level];
   return (
     <View
-      style={[styles.badge, { backgroundColor: c.bg, borderColor: c.border }]}
+      className="mb-2 self-start rounded-full border px-3 py-[5px]"
+      style={{ backgroundColor: c.bg, borderColor: c.border }}
     >
-      <Text style={[styles.badgeText, { color: c.text }]}>{c.label}</Text>
+      <Text
+        className="text-[10px] tracking-[0.3px]"
+        style={{ color: c.text, fontFamily: FONTS.sansBold }}
+      >
+        {c.label}
+      </Text>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  gradBtn: { paddingVertical: 14, paddingHorizontal: 24, alignItems: 'center' },
-  gradBtnText: {
-    color: '#fff',
-    fontSize: 14,
-    fontFamily: FONTS.sansBold,
-    letterSpacing: 0.3
-  },
-
-  ghostBtn: {
-    paddingVertical: 11,
-    borderRadius: RADIUS.lg,
-    borderWidth: 0.5,
-    borderColor: COLORS.borderMed,
-    alignItems: 'center',
-    marginTop: SPACING.sm
-  },
-  ghostBtnText: {
-    color: COLORS.textMuted,
-    fontSize: 12,
-    fontFamily: FONTS.sans
-  },
-
-  chip: {
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: RADIUS.full,
-    borderWidth: 0.5,
-    margin: 3
-  },
-  chipText: { fontSize: 12, fontFamily: FONTS.sans },
-
-  sectionLabel: {
-    fontSize: 9,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: COLORS.textHint,
-    fontFamily: FONTS.sansBold,
-    marginBottom: SPACING.sm,
-    marginTop: SPACING.md
-  },
-
-  inputWrap: {
-    backgroundColor: COLORS.bgCard,
-    borderWidth: 0.5,
-    borderColor: COLORS.border,
-    borderRadius: RADIUS.md,
-    paddingHorizontal: 13,
-    paddingVertical: 10,
-    marginBottom: SPACING.sm
-  },
-  inputLabel: {
-    fontSize: 9,
-    letterSpacing: 0.7,
-    textTransform: 'uppercase',
-    color: COLORS.textHint,
-    marginBottom: 4,
-    fontFamily: FONTS.sans
-  },
-
-  dotsRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 5,
-    marginBottom: SPACING.lg,
-    paddingTop: 4
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: COLORS.bgCardHover
-  },
-  dotActive: { width: 18, borderRadius: 3, backgroundColor: COLORS.gradStart },
-  dotDone: { backgroundColor: 'rgba(232,121,160,0.45)' },
-
-  progTrack: {
-    height: 3,
-    backgroundColor: COLORS.border,
-    borderRadius: 2,
-    overflow: 'hidden',
-    marginBottom: SPACING.lg
-  },
-  progFill: { height: '100%', borderRadius: 2 },
-
-  badge: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: RADIUS.full,
-    borderWidth: 0.5,
-    marginBottom: SPACING.sm
-  },
-  badgeText: { fontSize: 10, fontFamily: FONTS.sansBold, letterSpacing: 0.3 }
-});

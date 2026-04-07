@@ -1,11 +1,11 @@
 // src/screens/onboarding/AboutYou1Screen.tsx
 
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet } from 'react-native';
+import { View, Text, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { ProgressDots, ProgressBar, GradientButton, SectionLabel, Chip } from '../../components/UI';
-import { COLORS, FONTS, SPACING, RADIUS } from '../../constants/theme';
+import { COLORS, FONTS } from '../../constants/theme';
 import { useApp } from '../../context/AppContext';
 
 const AGE_GROUPS   = ['13–17', '18–25', '26–35', '36–45', '46–55', '56+'];
@@ -31,14 +31,24 @@ export default function AboutYou1Screen() {
       <ProgressDots total={5} current={0} />
       <ProgressBar current={1} total={5} />
 
-      <Text style={styles.heading}>Tell us about yourself</Text>
-      <Text style={styles.sub}>This helps us make your health assessment accurate and personal.</Text>
+      <Text className="mb-2 text-[20px] text-textPrimary" style={{ fontFamily: FONTS.serif, fontWeight: '600' }}>
+        Tell us about yourself
+      </Text>
+      <Text className="mb-4 text-[12px] leading-[18px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
+        This helps us make your health assessment accurate and personal.
+      </Text>
 
       {/* City */}
-      <View style={styles.fieldWrap}>
-        <Text style={styles.fieldLabel}>City / Town</Text>
+      <View className="mb-3 gap-1">
+        <Text
+          className="text-[10px] uppercase tracking-[0.8px] text-textHint"
+          style={{ fontFamily: FONTS.sans }}
+        >
+          City / Town
+        </Text>
         <TextInput
-          style={styles.input}
+          className="rounded-lg border border-borderSoft bg-card px-3 py-3 text-[14px] text-textPrimary"
+          style={{ fontFamily: FONTS.sans }}
           placeholder="e.g. Chennai, Coimbatore…"
           placeholderTextColor={COLORS.textHint}
           value={city}
@@ -48,7 +58,7 @@ export default function AboutYou1Screen() {
 
       {/* Age group */}
       <SectionLabel label="Age group" />
-      <View style={styles.chipRow}>
+      <View className="mb-2 flex-row flex-wrap">
         {AGE_GROUPS.map(a => (
           <Chip
             key={a} label={a}
@@ -61,7 +71,7 @@ export default function AboutYou1Screen() {
 
       {/* Life stage */}
       <SectionLabel label="Current life stage" />
-      <View style={styles.chipRow}>
+      <View className="mb-2 flex-row flex-wrap">
         {LIFE_STAGES.map(s => (
           <Chip
             key={s} label={s}
@@ -73,8 +83,17 @@ export default function AboutYou1Screen() {
       </View>
 
       {/* Privacy note */}
-      <View style={styles.tip}>
-        <Text style={styles.tipText}>
+      <View
+        className="mb-4 mt-3 rounded-lg border px-3 py-3"
+        style={{
+          backgroundColor: 'rgba(129,140,248,0.07)',
+          borderColor: 'rgba(129,140,248,0.18)'
+        }}
+      >
+        <Text
+          className="text-[11px] leading-[17px]"
+          style={{ color: 'rgba(165,180,252,0.7)', fontFamily: FONTS.sans }}
+        >
           Your information is private and never shared without permission.
         </Text>
       </View>
@@ -83,22 +102,3 @@ export default function AboutYou1Screen() {
     </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  heading:    { fontFamily: FONTS.serif, fontSize: 20, fontWeight: '600', color: COLORS.textPrimary, marginBottom: SPACING.sm },
-  sub:        { fontSize: 12, fontFamily: FONTS.sans, color: COLORS.textMuted, lineHeight: 18, marginBottom: SPACING.lg },
-  fieldWrap:  { gap: SPACING.xs, marginBottom: SPACING.md },
-  fieldLabel: { fontSize: 10, letterSpacing: 0.8, textTransform: 'uppercase', color: COLORS.textHint, fontFamily: FONTS.sans },
-  input: {
-    backgroundColor: COLORS.bgCard, borderWidth: 0.5, borderColor: COLORS.border,
-    borderRadius: RADIUS.md, paddingHorizontal: SPACING.md, paddingVertical: SPACING.md,
-    color: COLORS.textPrimary, fontSize: 14, fontFamily: FONTS.sans,
-  },
-  chipRow:    { flexDirection: 'row', flexWrap: 'wrap', marginBottom: SPACING.sm },
-  tip: {
-    backgroundColor: 'rgba(129,140,248,0.07)', borderWidth: 0.5,
-    borderColor: 'rgba(129,140,248,0.18)', borderRadius: RADIUS.md,
-    padding: SPACING.md, marginBottom: SPACING.lg, marginTop: SPACING.md,
-  },
-  tipText:    { fontSize: 11, color: 'rgba(165,180,252,0.7)', fontFamily: FONTS.sans, lineHeight: 17 },
-});

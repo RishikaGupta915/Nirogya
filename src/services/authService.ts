@@ -17,6 +17,11 @@ export type User = {
   photoURL: string | null;
 };
 
+export type SignUpResult = {
+  user: User;
+  requiresEmailVerification: boolean;
+};
+
 export const auth: { currentUser: User | null } = {
   currentUser: null
 };
@@ -48,7 +53,6 @@ function getRedirectUri() {
   // Ensure this value is allow-listed in Supabase Redirect URLs and Google Web OAuth client.
   if (Constants.appOwnership === 'expo') {
     return AuthSession.makeRedirectUri({
-      useProxy: true,
       path: 'auth/callback'
     });
   }
@@ -74,6 +78,27 @@ function getParamFromUrl(urlStr: string, key: string) {
     return params.get(key);
   } catch {
     return null;
+  }
+}
+
+async function withTimeout<T>(
+  promise: Promise<T>,
+  ms: number,
+  label: string
+): Promise<T> {
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(
+        new Error(`${label} timed out. Check internet and Supabase settings.`)
+      );
+    }, ms);
+  });
+
+  try {
+    return await Promise.race([promise, timeoutPromise]);
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
   }
 }
 
@@ -120,13 +145,17 @@ export async function signInWithGoogle() {
   console.log('[OAuth] executionEnvironment =', Constants.executionEnvironment);
   console.log('[OAuth] redirectTo =', redirectTo);
 
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo,
-      skipBrowserRedirect: true
-    }
-  });
+  const { data, error } = await withTimeout(
+    supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo,
+        skipBrowserRedirect: true
+      }
+    }),
+    20000,
+    'Google sign-in request'
+  );
   if (error) throw error;
   if (!data?.url) throw new Error('No auth URL returned');
   console.log('[OAuth] authorizeUrl =', data.url);
@@ -170,7 +199,11 @@ export async function signInWithGoogle() {
   return auth.currentUser!;
 }
 
-export async function signUp(_email: string, _password: string, name: string) {
+export async function signUp(
+  _email: string,
+  _password: string,
+  name: string
+): Promise<SignUpResult> {
   const email = _email.trim();
   const password = _password;
 
@@ -178,22 +211,32 @@ export async function signUp(_email: string, _password: string, name: string) {
     throw new Error('Email and password are required.');
   }
 
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        full_name: name?.trim() || undefined
+  const { data, error } = await withTimeout(
+    supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: name?.trim() || undefined
+        }
       }
-    }
-  });
+    }),
+    20000,
+    'Create account request'
+  );
   if (error) throw error;
+
+  const mappedUser = mapSupabaseUser(data.user);
+  if (!mappedUser) {
+    throw new Error('Account created response was invalid. Please try again.');
+  }
 
   const session = data.session;
   if (!session?.user) {
-    throw new Error(
-      'Account created but no active session. Disable email confirmation in Supabase for immediate in-app sign-in.'
-    );
+    return {
+      user: mappedUser,
+      requiresEmailVerification: true
+    };
   }
 
   await SecureStore.setItemAsync(SESSION_KEY, JSON.stringify(session));
@@ -207,7 +250,10 @@ export async function signUp(_email: string, _password: string, name: string) {
     });
   }
 
-  return auth.currentUser!;
+  return {
+    user: auth.currentUser!,
+    requiresEmailVerification: false
+  };
 }
 
 export async function signIn(_email: string, _password: string) {
@@ -218,10 +264,14 @@ export async function signIn(_email: string, _password: string) {
     throw new Error('Email and password are required.');
   }
 
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password
-  });
+  const { data, error } = await withTimeout(
+    supabase.auth.signInWithPassword({
+      email,
+      password
+    }),
+    20000,
+    'Sign-in request'
+  );
   if (error) throw error;
 
   const session = data.session;
