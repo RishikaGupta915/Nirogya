@@ -1,6 +1,8 @@
 // src/context/AppContext.tsx
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { applyTheme, ThemeMode } from '../constants/theme';
 import {
   auth,
   getUserProfile,
@@ -37,23 +39,58 @@ interface UserProfile {
 interface AppContextType {
   user: User | null;
   userProfile: UserProfile;
+  themeMode: ThemeMode;
   loading: boolean;
   setUserProfile: (p: Partial<UserProfile>) => void;
+  setThemeMode: (mode: ThemeMode) => void;
+  toggleTheme: () => void;
   refreshProfile: () => Promise<void>;
 }
+
+const THEME_MODE_KEY = 'nirogya.theme.mode';
 
 const AppContext = createContext<AppContextType>({
   user: null,
   userProfile: {},
+  themeMode: 'light',
   loading: true,
   setUserProfile: () => {},
+  setThemeMode: () => {},
+  toggleTheme: () => {},
   refreshProfile: async () => {}
 });
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setProfile] = useState<UserProfile>({});
+  const [themeMode, setThemeModeState] = useState<ThemeMode>('light');
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const hydrateTheme = async () => {
+      try {
+        const stored = await AsyncStorage.getItem(THEME_MODE_KEY);
+        if (!isMounted) return;
+        const nextMode: ThemeMode = stored === 'dark' ? 'dark' : 'light';
+        setThemeModeState(nextMode);
+      } catch {
+        if (isMounted) setThemeModeState('light');
+      }
+    };
+
+    void hydrateTheme();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    applyTheme(themeMode);
+    void AsyncStorage.setItem(THEME_MODE_KEY, themeMode).catch(() => {});
+  }, [themeMode]);
 
   const refreshProfile = async () => {
     if (!auth.currentUser) return;
@@ -119,9 +156,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const setUserProfile = (partial: Partial<UserProfile>) =>
     setProfile((prev) => ({ ...prev, ...partial }));
 
+  const setThemeMode = (mode: ThemeMode) => setThemeModeState(mode);
+  const toggleTheme = () =>
+    setThemeModeState((prev) => (prev === 'dark' ? 'light' : 'dark'));
+
   return (
     <AppContext.Provider
-      value={{ user, userProfile, loading, setUserProfile, refreshProfile }}
+      value={{
+        user,
+        userProfile,
+        themeMode,
+        loading,
+        setUserProfile,
+        setThemeMode,
+        toggleTheme,
+        refreshProfile
+      }}
     >
       {children}
     </AppContext.Provider>

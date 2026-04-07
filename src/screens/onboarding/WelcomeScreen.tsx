@@ -40,9 +40,8 @@ export default function WelcomeScreen() {
       {/* Hero */}
       <View className="items-center pb-4 pt-6">
         <View
-          className="mb-3 h-[72px] w-[72px] items-center justify-center rounded-full border bg-card"
+          className="mb-3 h-[74px] w-[74px] items-center justify-center rounded-full bg-card dark:bg-slate-900/72"
           style={{
-            borderColor: COLORS.pinkBorder,
             shadowColor: '#2f4b84',
             shadowOffset: { width: 0, height: 8 },
             shadowOpacity: 0.15,
@@ -53,18 +52,18 @@ export default function WelcomeScreen() {
           <MaterialCommunityIcons name="heart-pulse" size={28} color={COLORS.pink} />
         </View>
         <Text
-          className="mb-2 text-[28px] text-textPrimary"
+          className="mb-2 text-[28px] text-textPrimary dark:text-slate-100"
           style={{ fontFamily: FONTS.serif, fontWeight: '600', letterSpacing: -0.5 }}
         >
           Nirogya
         </Text>
         <Text
-          className="mb-2 text-center text-[26px] leading-[34px] text-textPrimary"
+          className="mb-2 text-center text-[26px] leading-[34px] text-textPrimary dark:text-slate-100"
           style={{ fontFamily: FONTS.serif, fontWeight: '600' }}
         >
           Your health, finally{'\n'}understood
         </Text>
-        <Text className="mb-6 text-center text-[13px] leading-5 text-textMuted" style={{ fontFamily: FONTS.sans }}>
+        <Text className="mb-6 text-center text-[13px] leading-5 text-textMuted dark:text-slate-300" style={{ fontFamily: FONTS.sans }}>
           Not generic advice. Personalised symptom care,{'\n'}built for Indian women.
         </Text>
       </View>
@@ -74,7 +73,7 @@ export default function WelcomeScreen() {
         {FEATURES.map((f, i) => (
           <View
             key={i}
-            className="mb-2 flex-row items-center gap-3 rounded-xl border border-borderSoft bg-card px-3 py-3"
+            className="mb-2 flex-row items-center gap-3 rounded-xl2 bg-card dark:bg-slate-900/72 px-3 py-[11px]"
             style={{
               shadowColor: '#2f4b84',
               shadowOffset: { width: 0, height: 6 },
@@ -87,10 +86,10 @@ export default function WelcomeScreen() {
               <MaterialCommunityIcons name={f.icon as any} size={16} color={f.color} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text className="mb-[2px] text-[13px] text-textPrimary" style={{ fontFamily: FONTS.sansBold }}>
+              <Text className="mb-[2px] text-[13px] text-textPrimary dark:text-slate-100" style={{ fontFamily: FONTS.sansBold }}>
                 {f.title}
               </Text>
-              <Text className="text-[11px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
+              <Text className="text-[11px] text-textMuted dark:text-slate-300" style={{ fontFamily: FONTS.sans }}>
                 {f.sub}
               </Text>
             </View>
@@ -111,3 +110,5 @@ export default function WelcomeScreen() {
     </ScreenWrapper>
   );
 }
+
+

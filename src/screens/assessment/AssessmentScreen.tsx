@@ -148,13 +148,13 @@ export default function AssessmentScreen() {
         <View className="flex-1 items-center justify-center gap-3">
           <ActivityIndicator size="large" color={COLORS.gradStart} />
           <Text
-            className="text-center text-[18px] text-textPrimary"
+            className="text-center text-[18px] text-textPrimary dark:text-slate-100"
             style={{ fontFamily: FONTS.serif }}
           >
             Preparing your questions…
           </Text>
           <Text
-            className="text-center text-[12px] text-textMuted"
+            className="text-center text-[12px] text-textMuted dark:text-slate-300"
             style={{ fontFamily: FONTS.sans }}
           >
             Personalising based on your profile
@@ -174,7 +174,7 @@ export default function AssessmentScreen() {
             color={COLORS.textMuted}
           />
           <Text
-            className="text-center text-[18px] text-textPrimary"
+            className="text-center text-[18px] text-textPrimary dark:text-slate-100"
             style={{ fontFamily: FONTS.serif }}
           >
             {error}
@@ -194,7 +194,7 @@ export default function AssessmentScreen() {
       <Animated.View style={contentAnim}>
         <View className="mb-5 flex-row items-center justify-between pt-2">
           <TouchableOpacity
-            className="h-[34px] w-[34px] items-center justify-center rounded-md border border-borderSoft bg-card"
+            className="h-[34px] w-[34px] items-center justify-center rounded-md border border-borderSoft bg-card dark:bg-slate-900/72"
             style={UI_SHADOWS.soft}
             onPress={() => nav.goBack()}
           >
@@ -205,14 +205,14 @@ export default function AssessmentScreen() {
             />
           </TouchableOpacity>
           <Text
-            className="text-[16px] text-textPrimary"
+            className="text-[16px] text-textPrimary dark:text-slate-100"
             style={{ fontFamily: FONTS.serif }}
           >
             {symptom}
           </Text>
           <TouchableOpacity onPress={() => nav.goBack()}>
             <Text
-              className="text-[12px] tracking-[0.15px] text-textMuted"
+              className="text-[12px] tracking-[0.15px] text-textMuted dark:text-slate-300"
               style={{ fontFamily: FONTS.sans }}
             >
               Cancel
@@ -222,13 +222,13 @@ export default function AssessmentScreen() {
 
         <View className="mb-2 flex-row justify-between">
           <Text
-            className="text-[10px] text-textMuted"
+            className="text-[10px] text-textMuted dark:text-slate-300"
             style={{ fontFamily: FONTS.sans }}
           >
             Question {currentQ + 1} of {questions.length}
           </Text>
           <Text
-            className="text-[10px] text-textSecondary"
+            className="text-[10px] text-textSecondary dark:text-slate-200"
             style={{ fontFamily: FONTS.sansBold }}
           >
             {Math.round(((currentQ + 1) / questions.length) * 100)}%
@@ -251,7 +251,7 @@ export default function AssessmentScreen() {
               ][currentQ] ?? `Question ${currentQ + 1}`}
             </Text>
             <Text
-              className="mb-5 text-[22px] leading-8 text-textPrimary"
+              className="mb-5 text-[22px] leading-8 text-textPrimary dark:text-slate-100"
               style={{ fontFamily: FONTS.serif }}
             >
               {q.text}
@@ -301,13 +301,13 @@ export default function AssessmentScreen() {
             </View>
 
             <Text
-              className="mb-2 text-[10px] uppercase tracking-[0.9px] text-textHint"
+              className="mb-2 text-[10px] uppercase tracking-[0.9px] text-textHint dark:text-slate-400"
               style={{ fontFamily: FONTS.sansBold }}
             >
               Or describe in your own words
             </Text>
             <View
-              className={`flex-row items-center gap-2 rounded-xl border border-borderSoft bg-card px-3 py-[12px]`}
+              className={`flex-row items-center gap-2 rounded-xl border border-borderSoft bg-card dark:bg-slate-900/72 px-3 py-[12px]`}
               style={UI_SHADOWS.soft}
             >
               <MaterialCommunityIcons
@@ -316,7 +316,7 @@ export default function AssessmentScreen() {
                 color={COLORS.textMuted}
               />
               <TextInput
-                className="flex-1 text-[12px] text-textPrimary"
+                className="flex-1 text-[12px] text-textPrimary dark:text-slate-100"
                 style={{ fontFamily: FONTS.sans }}
                 placeholder="Type your own description…"
                 placeholderTextColor={COLORS.textHint}
@@ -344,3 +344,6 @@ export default function AssessmentScreen() {
     </ScreenWrapper>
   );
 }
+
+
+

@@ -36,10 +36,10 @@ export default function AboutYou3Screen() {
       <ProgressDots total={5} current={2} />
       <ProgressBar current={3} total={5} />
 
-      <Text className="mb-2 text-[20px] text-textPrimary" style={{ fontFamily: FONTS.serif, fontWeight: '600' }}>
+      <Text className="mb-2 text-[20px] text-textPrimary dark:text-slate-100" style={{ fontFamily: FONTS.serif, fontWeight: '600' }}>
         Diet & nutrition
       </Text>
-      <Text className="mb-4 text-[12px] leading-[18px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
+      <Text className="mb-4 text-[12px] leading-[18px] text-textMuted dark:text-slate-300" style={{ fontFamily: FONTS.sans }}>
         Common deficiencies in Indian women are tied directly to food habits.
       </Text>
 
@@ -76,3 +76,5 @@ export default function AboutYou3Screen() {
     </ScreenWrapper>
   );
 }
+
+

@@ -43,10 +43,10 @@ export default function AboutYou2Screen() {
       <ProgressDots total={5} current={1} />
       <ProgressBar current={2} total={5} />
 
-      <Text className="mb-2 text-[20px] text-textPrimary" style={{ fontFamily: FONTS.serif, fontWeight: '600' }}>
+      <Text className="mb-2 text-[20px] text-textPrimary dark:text-slate-100" style={{ fontFamily: FONTS.serif, fontWeight: '600' }}>
         Physical activity
       </Text>
-      <Text className="mb-4 text-[12px] leading-[18px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
+      <Text className="mb-4 text-[12px] leading-[18px] text-textMuted dark:text-slate-300" style={{ fontFamily: FONTS.sans }}>
         Be honest — this shapes your health risk profile directly.
       </Text>
 
@@ -57,7 +57,7 @@ export default function AboutYou2Screen() {
           return (
             <TouchableOpacity
               key={a.id}
-              className="w-[47%] items-center rounded-xl border bg-card p-3"
+              className="w-[47%] items-center rounded-xl border bg-card dark:bg-slate-900/72 p-3"
               style={sel ? { backgroundColor: COLORS.pinkBg, borderColor: COLORS.pinkBorder } : { borderColor: COLORS.border }}
               onPress={() => setActivityLevel(a.id)}
               activeOpacity={0.8}
@@ -69,12 +69,12 @@ export default function AboutYou2Screen() {
                 style={{ marginBottom: SPACING.sm }}
               />
               <Text
-                className="mb-[2px] text-center text-[12px] text-textSecondary"
+                className="mb-[2px] text-center text-[12px] text-textSecondary dark:text-slate-200"
                 style={{ color: sel ? COLORS.pink : COLORS.textSecondary, fontFamily: FONTS.sansBold }}
               >
                 {a.label}
               </Text>
-              <Text className="text-center text-[10px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
+              <Text className="text-center text-[10px] text-textMuted dark:text-slate-300" style={{ fontFamily: FONTS.sans }}>
                 {a.sub}
               </Text>
             </TouchableOpacity>
@@ -99,7 +99,7 @@ export default function AboutYou2Screen() {
         {DAYS_OPTIONS.map(d => (
           <TouchableOpacity
             key={d}
-            className="h-9 flex-1 items-center justify-center rounded-md border bg-card"
+            className="h-9 flex-1 items-center justify-center rounded-md border bg-card dark:bg-slate-900/72"
             style={exerciseDays === d ? { backgroundColor: COLORS.pinkBg, borderColor: COLORS.pinkBorder } : { borderColor: COLORS.border }}
             onPress={() => setExerciseDays(d)}
           >
@@ -121,3 +121,5 @@ export default function AboutYou2Screen() {
     </ScreenWrapper>
   );
 }
+
+

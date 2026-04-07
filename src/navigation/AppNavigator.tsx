@@ -37,14 +37,17 @@ const Tab = createBottomTabNavigator();
 
 // ── Bottom Tab Navigator ───────────────────────────────────────
 function MainTabs() {
+  const { themeMode } = useApp();
+  const isDark = themeMode === 'dark';
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: 'rgba(255,255,255,0.94)',
-          borderTopWidth: 1,
-          borderTopColor: COLORS.border,
+          backgroundColor: isDark ? 'rgba(15,23,42,0.92)' : 'rgba(255,255,255,0.94)',
+          borderTopWidth: 0,
+          borderTopColor: 'transparent',
           paddingBottom: 16,
           paddingTop: 10,
           height: 68,
@@ -94,13 +97,17 @@ function MainTabs() {
 
 // ── Root Stack Navigator ───────────────────────────────────────
 export default function AppNavigator() {
-  const { user, loading } = useApp();
+  const { user, loading, themeMode } = useApp();
+  const isDark = themeMode === 'dark';
 
   if (loading) {
     return (
-      <View className="flex-1 items-center justify-center bg-canvas">
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.bg }}>
         <ActivityIndicator size="large" color={COLORS.gradStart} />
-        <Text className="mt-3 text-[13px] text-textSecondary" style={{ fontFamily: FONTS.sans }}>
+        <Text
+          className="mt-3 text-[13px]"
+          style={{ fontFamily: FONTS.sans, color: isDark ? COLORS.textSecondary : COLORS.textSecondary }}
+        >
           Preparing your app...
         </Text>
       </View>

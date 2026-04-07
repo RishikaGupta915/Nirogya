@@ -41,32 +41,31 @@ export default function ProfileReadyScreen() {
         <MaterialCommunityIcons name="check-circle-outline" size={32} color={COLORS.teal} />
       </View>
 
-      <Text className="mb-2 text-center text-[24px] text-textPrimary" style={{ fontFamily: FONTS.serif, fontWeight: '600' }}>
+      <Text className="mb-2 text-center text-[24px] text-textPrimary dark:text-slate-100" style={{ fontFamily: FONTS.serif, fontWeight: '600' }}>
         {greeting}, {userProfile.name ?? 'there'}!
       </Text>
-      <Text className="mb-2 text-center text-[13px] leading-5 text-textSecondary" style={{ fontFamily: FONTS.sans }}>
+      <Text className="mb-2 text-center text-[13px] leading-5 text-textSecondary dark:text-slate-200" style={{ fontFamily: FONTS.sans }}>
         You&apos;re all set. Nirogya is ready in{' '}
         <Text style={{ color: COLORS.pink, fontFamily: FONTS.sansBold }}>{langLabel}</Text> for you.
       </Text>
-      <Text className="mb-6 text-center text-[11px] leading-[17px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
+      <Text className="mb-6 text-center text-[11px] leading-[17px] text-textMuted dark:text-slate-300" style={{ fontFamily: FONTS.sans }}>
         You can update your language and profile anytime from settings.
       </Text>
 
       {/* Setup summary card */}
-      <View className="mb-6 rounded-xl border border-borderSoft bg-card px-4">
-        <Text className="py-3 text-[9px] uppercase tracking-[1px] text-textHint" style={{ fontFamily: FONTS.sansBold }}>
+      <View className="mb-6 rounded-xl border border-borderSoft bg-card dark:bg-slate-900/72 px-4">
+        <Text className="py-3 text-[9px] uppercase tracking-[1px] text-textHint dark:text-slate-400" style={{ fontFamily: FONTS.sansBold }}>
           YOUR SETUP
         </Text>
-        {summaryRows.map((row, i) => (
+        {summaryRows.map((row) => (
           <View
             key={row.label}
             className="flex-row items-center justify-between py-3"
-            style={i < summaryRows.length - 1 ? { borderBottomWidth: 0.5, borderBottomColor: COLORS.border } : undefined}
           >
-            <Text className="text-[12px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
+            <Text className="text-[12px] text-textMuted dark:text-slate-300" style={{ fontFamily: FONTS.sans }}>
               {row.label}
             </Text>
-            <Text className="text-[12px] text-textSecondary" style={{ fontFamily: FONTS.sansBold }}>
+            <Text className="text-[12px] text-textSecondary dark:text-slate-200" style={{ fontFamily: FONTS.sansBold }}>
               {row.value}
             </Text>
           </View>
@@ -80,3 +79,5 @@ export default function ProfileReadyScreen() {
     </ScreenWrapper>
   );
 }
+
+

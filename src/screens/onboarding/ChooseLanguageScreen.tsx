@@ -31,10 +31,10 @@ export default function ChooseLanguageScreen() {
     <ScreenWrapper>
       <ProgressDots total={4} current={1} />
 
-      <Text className="mb-2 text-[22px] text-textPrimary" style={{ fontFamily: FONTS.serif, fontWeight: '600' }}>
+      <Text className="mb-2 text-[22px] text-textPrimary dark:text-slate-100" style={{ fontFamily: FONTS.serif, fontWeight: '600' }}>
         Choose your language
       </Text>
-      <Text className="mb-4 text-[12px] leading-[18px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
+      <Text className="mb-4 text-[12px] leading-[18px] text-textMuted dark:text-slate-300" style={{ fontFamily: FONTS.sans }}>
         Nirogya works fully in your preferred language — questions, results,
         everything.
       </Text>
@@ -46,7 +46,7 @@ export default function ChooseLanguageScreen() {
           return (
             <TouchableOpacity
               key={lang.code}
-              className="w-[47%] items-center rounded-xl border bg-card p-3"
+              className="w-[47%] items-center rounded-xl border bg-card dark:bg-slate-900/72 p-3"
               style={isSel ? { backgroundColor: COLORS.pinkBg, borderColor: COLORS.pinkBorder } : { borderColor: COLORS.border }}
               onPress={() => setSelected(lang.code)}
               activeOpacity={0.8}
@@ -77,7 +77,7 @@ export default function ChooseLanguageScreen() {
       {/* Divider */}
       <View className="mb-3 flex-row items-center gap-2">
         <View className="h-[0.5px] flex-1 bg-borderSoft" />
-        <Text className="text-[11px] text-textHint" style={{ fontFamily: FONTS.sans }}>
+        <Text className="text-[11px] text-textHint dark:text-slate-400" style={{ fontFamily: FONTS.sans }}>
           also available
         </Text>
         <View className="h-[0.5px] flex-1 bg-borderSoft" />
@@ -122,3 +122,5 @@ export default function ChooseLanguageScreen() {
     </ScreenWrapper>
   );
 }
+
+

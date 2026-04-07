@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -25,8 +25,13 @@ import { useEntranceAnimation } from '../../hooks/useEntranceAnimation';
 type Message = { id: string; sender: 'nira' | 'user'; text: string };
 
 export default function NiraChatScreen() {
-  const { userProfile } = useApp();
+  const { userProfile, themeMode } = useApp();
   const language = userProfile.language ?? 'en';
+  const isDark = themeMode === 'dark';
+  const bgGradient = useMemo<[string, string, string]>(
+    () => (isDark ? ['#0b1020', '#121a33', '#1a1230'] : ['#f7fbff', '#eef7ff', '#f9f4ff']),
+    [isDark]
+  );
   const headerAnim = useEntranceAnimation(0, 8);
   const listAnim = useEntranceAnimation(90, 12);
   const composerAnim = useEntranceAnimation(180, 12);
@@ -111,13 +116,13 @@ export default function NiraChatScreen() {
   };
 
   return (
-    <View className="flex-1 bg-canvas">
+    <View className="flex-1 bg-canvas dark:bg-slate-950">
       <KeyboardAvoidingView
         className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <LinearGradient
-          colors={['#f7fbff', '#eef7ff', '#f9f4ff']}
+          colors={bgGradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           className="absolute inset-0"
@@ -128,7 +133,7 @@ export default function NiraChatScreen() {
 
         <Animated.View style={headerAnim}>
           <View
-            className="mx-3 mb-2 mt-3 rounded-3xl border border-white/80 bg-white/80 p-3"
+            className="mx-3 mb-2 mt-3 rounded-3xl border border-white/80 bg-white/80 dark:bg-slate-900/68 p-3"
             style={UI_SHADOWS.soft}
           >
             <View className="flex-row items-center justify-between">
@@ -142,13 +147,13 @@ export default function NiraChatScreen() {
                 </View>
                 <View className="ml-3">
                   <Text
-                    className="text-[26px] text-textPrimary"
+                    className="text-[26px] text-textPrimary dark:text-slate-100"
                     style={{ fontFamily: FONTS.serif, fontWeight: '600' }}
                   >
                     Nira Live
                   </Text>
                   <Text
-                    className="text-[12px] leading-[18px] text-textMuted"
+                    className="text-[12px] leading-[18px] text-textMuted dark:text-slate-300"
                     style={{ fontFamily: FONTS.sans }}
                   >
                     Talk naturally. I will guide your assessment.
@@ -185,7 +190,7 @@ export default function NiraChatScreen() {
         )}
 
         <Animated.View
-          className="mx-3 mb-2 flex-1 rounded-3xl border border-white/80 bg-white/60"
+          className="mx-3 mb-2 flex-1 rounded-3xl border border-white/80 bg-white/60 dark:bg-slate-900/58"
           style={[UI_SHADOWS.soft, listAnim]}
         >
           <FlatList
@@ -230,7 +235,7 @@ export default function NiraChatScreen() {
                     }
                   >
                     <Text
-                      className="shrink text-[14px] leading-[21px] text-textPrimary"
+                      className="shrink text-[14px] leading-[21px] text-textPrimary dark:text-slate-100"
                       style={{ fontFamily: FONTS.sans }}
                     >
                       {item.text}
@@ -248,12 +253,12 @@ export default function NiraChatScreen() {
 
           {loading && (
             <View
-              className="mx-3 mb-3 flex-row items-center self-start rounded-2xl border border-borderSoft bg-white/90 px-3 py-2"
+              className="mx-3 mb-3 flex-row items-center self-start rounded-2xl border border-borderSoft bg-white/90 dark:bg-slate-900/74 px-3 py-2"
               style={UI_SHADOWS.soft}
             >
               <ActivityIndicator color={COLORS.gradStart} size="small" />
               <Text
-                className="ml-2 text-[12px] text-textMuted"
+                className="ml-2 text-[12px] text-textMuted dark:text-slate-300"
                 style={{ fontFamily: FONTS.sans }}
               >
                 Nira is thinking...
@@ -263,19 +268,20 @@ export default function NiraChatScreen() {
         </Animated.View>
 
         <Animated.View style={composerAnim}>
-          <View
-            className="mx-3 mb-3 rounded-3xl border border-white/80 bg-white/85 p-2"
-            style={UI_SHADOWS.soft}
-          >
+          <View className="mx-3 mb-3 rounded-3xl border border-white/80 bg-white/85 dark:bg-slate-900/72 p-2" style={UI_SHADOWS.soft}>
             <View className="flex-row items-center">
               <TextInput
-                className="mr-2 flex-1 rounded-2xl border border-borderSoft bg-white/95 px-4 py-[11px] text-[14px] text-textPrimary"
+                className="mr-2 flex-1 rounded-2xl bg-white/95 dark:bg-slate-900/78 px-4 py-[11px] text-[14px] text-textPrimary dark:text-slate-100"
                 style={{ fontFamily: FONTS.sans }}
                 value={input}
                 onChangeText={setInput}
-                placeholder="Describe your symptom or question..."
+                placeholder="Type your message to Nira"
                 placeholderTextColor={COLORS.textHint}
                 editable={!loading}
+                returnKeyType="send"
+                onSubmitEditing={() => {
+                  void sendMessage();
+                }}
               />
               <TouchableOpacity
                 className="overflow-hidden rounded-2xl"
@@ -305,3 +311,6 @@ export default function NiraChatScreen() {
     </View>
   );
 }
+
+
+

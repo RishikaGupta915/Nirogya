@@ -37,10 +37,10 @@ export default function AboutYou4Screen() {
       <ProgressDots total={5} current={3} />
       <ProgressBar current={4} total={5} />
 
-      <Text className="mb-2 text-[20px] text-textPrimary" style={{ fontFamily: FONTS.serif, fontWeight: '600' }}>
+      <Text className="mb-2 text-[20px] text-textPrimary dark:text-slate-100" style={{ fontFamily: FONTS.serif, fontWeight: '600' }}>
         Sleep & mental wellbeing
       </Text>
-      <Text className="mb-4 text-[12px] leading-[18px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
+      <Text className="mb-4 text-[12px] leading-[18px] text-textMuted dark:text-slate-300" style={{ fontFamily: FONTS.sans }}>
         Stress and sleep affect nearly every health condition in women.
       </Text>
 
@@ -60,9 +60,9 @@ export default function AboutYou4Screen() {
         thumbTintColor={COLORS.gradStart}
       />
       <View className="mb-3 flex-row justify-between">
-        <Text className="text-[10px] text-textMuted" style={{ fontFamily: FONTS.sans }}>3 hrs</Text>
-        <Text className="text-[10px] text-textMuted" style={{ fontFamily: FONTS.sans }}>7.5 hrs</Text>
-        <Text className="text-[10px] text-textMuted" style={{ fontFamily: FONTS.sans }}>12 hrs</Text>
+        <Text className="text-[10px] text-textMuted dark:text-slate-300" style={{ fontFamily: FONTS.sans }}>3 hrs</Text>
+        <Text className="text-[10px] text-textMuted dark:text-slate-300" style={{ fontFamily: FONTS.sans }}>7.5 hrs</Text>
+        <Text className="text-[10px] text-textMuted dark:text-slate-300" style={{ fontFamily: FONTS.sans }}>12 hrs</Text>
       </View>
 
       <SectionLabel label="Sleep quality" />
@@ -80,22 +80,21 @@ export default function AboutYou4Screen() {
       </View>
 
       <SectionLabel label="Mental health check-ins" />
-      <View className="mb-2 rounded-xl border border-borderSoft bg-card px-3">
+      <View className="mb-2 rounded-xl border border-borderSoft bg-card dark:bg-slate-900/72 px-3">
         {[
           { label: 'Mood swings',    sub: 'Noticeable changes in mood',   val: moodSwings,    set: setMoodSwings },
           { label: 'Anxiety or worry', sub: 'Regular feelings of dread', val: anxiety,       set: setAnxiety },
           { label: 'Low motivation', sub: 'Struggle to start tasks',      val: lowMotivation, set: setLowMotivation },
-        ].map((item, i, arr) => (
+        ].map((item) => (
           <View
             key={item.label}
             className="flex-row items-center gap-3 py-3"
-            style={i < arr.length - 1 ? { borderBottomWidth: 0.5, borderBottomColor: COLORS.border } : undefined}
           >
             <View style={{ flex: 1 }}>
-              <Text className="mb-[2px] text-[13px] text-textSecondary" style={{ fontFamily: FONTS.sans }}>
+              <Text className="mb-[2px] text-[13px] text-textSecondary dark:text-slate-200" style={{ fontFamily: FONTS.sans }}>
                 {item.label}
               </Text>
-              <Text className="text-[10px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
+              <Text className="text-[10px] text-textMuted dark:text-slate-300" style={{ fontFamily: FONTS.sans }}>
                 {item.sub}
               </Text>
             </View>
@@ -114,3 +113,5 @@ export default function AboutYou4Screen() {
     </ScreenWrapper>
   );
 }
+
+

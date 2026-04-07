@@ -38,6 +38,7 @@ export async function saveAssessment(
   data: Omit<Assessment, 'id' | 'createdAt'>
 ) {
   let createdAt = new Date().toISOString();
+  let createdId: string | undefined;
 
   try {
     const response = await backendFetch<{ id?: string; createdAt?: string }>(
@@ -59,21 +60,55 @@ export async function saveAssessment(
     if (typeof response?.createdAt === 'string' && response.createdAt.trim()) {
       createdAt = response.createdAt;
     }
+    if (typeof response?.id === 'string' && response.id.trim()) {
+      createdId = response.id;
+    }
   } catch (backendErr) {
     console.warn('[Assessment API Fallback to Supabase]', backendErr);
-    const payload = {
+
+    const payloadSnake = {
       ...data,
       created_at: createdAt,
+      risk_score: data.riskScore,
+      risk_level: data.riskLevel,
+      next_steps: data.nextSteps,
       raw_ai_text: data.rawAiText
     };
 
-    const { error } = await supabase.from('assessments').insert(payload);
-    if (error) throw error;
+    const { data: insertedSnake, error: snakeError } = await supabase
+      .from('assessments')
+      .insert(payloadSnake)
+      .select('id, created_at')
+      .single();
+
+    if (!snakeError) {
+      createdId = insertedSnake?.id;
+      if (insertedSnake?.created_at) createdAt = insertedSnake.created_at;
+    } else {
+      const payloadCompact = {
+        ...data,
+        created_at: createdAt,
+        riskscore: data.riskScore,
+        risklevel: data.riskLevel,
+        nextsteps: data.nextSteps,
+        rawaitext: data.rawAiText
+      };
+
+      const { data: insertedCompact, error: compactError } = await supabase
+        .from('assessments')
+        .insert(payloadCompact)
+        .select('id, created_at')
+        .single();
+
+      if (compactError) throw compactError;
+      createdId = insertedCompact?.id;
+      if (insertedCompact?.created_at) createdAt = insertedCompact.created_at;
+    }
   }
 
   // Update cache
   const existing = await loadCache(data.uid);
-  const entry: Assessment = { ...data, createdAt, id: undefined };
+  const entry: Assessment = { ...data, createdAt, id: createdId };
   const next = [entry, ...existing].sort(
     (a, b) =>
       new Date(b.createdAt ?? 0).getTime() -
@@ -93,10 +128,11 @@ export async function getUserAssessments(uid: string): Promise<Assessment[]> {
         symptom: row.symptom,
         answers: row.answers,
         diagnosis: row.diagnosis,
-        riskScore: row.riskScore ?? row.risk_score,
-        riskLevel: row.riskLevel ?? row.risk_level,
-        nextSteps: row.nextSteps ?? row.next_steps ?? [],
-        rawAiText: row.rawAiText ?? row.raw_ai_text ?? '',
+        riskScore: row.riskScore ?? row.risk_score ?? row.riskscore,
+        riskLevel: row.riskLevel ?? row.risk_level ?? row.risklevel,
+        nextSteps: row.nextSteps ?? row.next_steps ?? row.nextsteps ?? [],
+        rawAiText:
+          row.rawAiText ?? row.raw_ai_text ?? row.rawaitext ?? '',
         createdAt: row.createdAt ?? row.created_at
       })) as Assessment[];
       await saveCache(uid, mapped);
@@ -119,10 +155,10 @@ export async function getUserAssessments(uid: string): Promise<Assessment[]> {
       symptom: row.symptom,
       answers: row.answers,
       diagnosis: row.diagnosis,
-      riskScore: row.riskScore ?? row.risk_score,
-      riskLevel: row.riskLevel ?? row.risk_level,
-      nextSteps: row.nextSteps ?? row.next_steps ?? [],
-      rawAiText: row.rawAiText ?? row.raw_ai_text ?? '',
+      riskScore: row.riskScore ?? row.risk_score ?? row.riskscore,
+      riskLevel: row.riskLevel ?? row.risk_level ?? row.risklevel,
+      nextSteps: row.nextSteps ?? row.next_steps ?? row.nextsteps ?? [],
+      rawAiText: row.rawAiText ?? row.raw_ai_text ?? row.rawaitext ?? '',
       createdAt: row.created_at ?? row.createdAt
     })) as Assessment[];
     await saveCache(uid, mapped);

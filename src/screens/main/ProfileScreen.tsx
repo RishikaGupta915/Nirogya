@@ -10,7 +10,7 @@ import { auth, logOut, saveLanguage } from '../../services/authService';
 
 export default function ProfileScreen() {
   const nav = useNavigation<any>();
-  const { userProfile, setUserProfile } = useApp();
+  const { userProfile, setUserProfile, themeMode, toggleTheme } = useApp();
 
   const [periodReminders, setPeriodReminders] = useState(true);
   const [weeklyNudge, setWeeklyNudge] = useState(true);
@@ -56,9 +56,8 @@ export default function ProfileScreen() {
     <ScreenWrapper>
       <View className="items-center py-6">
         <View
-          className="mb-3 h-[60px] w-[60px] items-center justify-center rounded-full border bg-card"
+          className="mb-3 h-[62px] w-[62px] items-center justify-center rounded-full bg-card dark:bg-slate-900/72"
           style={{
-            borderColor: COLORS.pinkBorder,
             ...UI_SHADOWS.strong
           }}
         >
@@ -66,25 +65,25 @@ export default function ProfileScreen() {
             {initials}
           </Text>
         </View>
-        <Text className="mb-1 text-[18px] text-textPrimary" style={{ fontFamily: FONTS.serif }}>
+        <Text className="mb-1 text-[21px] text-textPrimary dark:text-slate-100" style={{ fontFamily: FONTS.serif, fontWeight: '600' }}>
           {name}
         </Text>
-        <Text className="mb-[2px] text-[12px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
+        <Text className="mb-[2px] text-[12px] text-textMuted dark:text-slate-300" style={{ fontFamily: FONTS.sans }}>
           {auth.currentUser?.email ?? ''}
         </Text>
         {userProfile.ageGroup && (
-          <Text className="text-[11px] text-textHint" style={{ fontFamily: FONTS.sans }}>
+          <Text className="text-[11px] text-textHint dark:text-slate-400" style={{ fontFamily: FONTS.sans }}>
             {userProfile.ageGroup} yrs · {userProfile.city ?? 'India'}
           </Text>
         )}
-        <View className="mt-2 rounded-full border border-borderSoft bg-white/80 px-3 py-[6px]">
-          <Text className="text-[11px] text-textSecondary" style={{ fontFamily: FONTS.sans }}>
+        <View className="mt-2 rounded-full bg-white/82 dark:bg-slate-900/70 px-3 py-[6px]" style={UI_SHADOWS.soft}>
+          <Text className="text-[11px] text-textSecondary dark:text-slate-200" style={{ fontFamily: FONTS.sans }}>
             Profile strength: {completionScore}/4
           </Text>
         </View>
       </View>
 
-      <Text className="mb-2 mt-4 text-[9px] uppercase tracking-[1px] text-textHint" style={{ fontFamily: FONTS.sansBold }}>
+      <Text className="mb-2 mt-4 text-[9px] uppercase tracking-[1px] text-textHint dark:text-slate-400" style={{ fontFamily: FONTS.sansBold }}>
         LANGUAGE
       </Text>
       <View
@@ -98,11 +97,11 @@ export default function ProfileScreen() {
               return (
                 <TouchableOpacity
                   key={lang.code}
-                  className="rounded-full border px-3 py-[6px]"
+                  className="rounded-full px-3 py-[6px]"
                   style={
                     isSel
-                      ? { backgroundColor: COLORS.pinkBg, borderColor: COLORS.pinkBorder }
-                      : { backgroundColor: 'rgba(255,255,255,0.8)', borderColor: COLORS.border }
+                      ? { backgroundColor: COLORS.pinkBg }
+                      : { backgroundColor: 'rgba(255,255,255,0.8)' }
                   }
                   onPress={() => handleLangChange(lang.code)}
                 >
@@ -122,7 +121,7 @@ export default function ProfileScreen() {
         </ScrollView>
       </View>
 
-      <Text className="mb-2 mt-4 text-[9px] uppercase tracking-[1px] text-textHint" style={{ fontFamily: FONTS.sansBold }}>
+      <Text className="mb-2 mt-4 text-[9px] uppercase tracking-[1px] text-textHint dark:text-slate-400" style={{ fontFamily: FONTS.sansBold }}>
         MY PROFILE
       </Text>
       <View
@@ -136,23 +135,21 @@ export default function ProfileScreen() {
             label: 'Known conditions',
             value: userProfile.conditions?.join(', ') || 'None'
           }
-        ].map((row, i, arr) => (
+        ].map((row) => (
           <View
             key={row.label}
             className="flex-row items-center gap-3 py-3"
-            style={i < arr.length - 1 ? { borderBottomWidth: 0.5, borderBottomColor: COLORS.border } : undefined}
           >
-            <Text className="flex-1 text-[13px] text-textSecondary" style={{ fontFamily: FONTS.sans }}>
+            <Text className="flex-1 text-[13px] text-textSecondary dark:text-slate-200" style={{ fontFamily: FONTS.sans }}>
               {row.label}
             </Text>
-            <Text className="text-[12px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
+            <Text className="text-[12px] text-textMuted dark:text-slate-300" style={{ fontFamily: FONTS.sans }}>
               {row.value}
             </Text>
           </View>
         ))}
         <TouchableOpacity
           className="flex-row items-center gap-3 py-3"
-          style={{ borderTopWidth: 0.5, borderTopColor: COLORS.border }}
           onPress={() => nav.navigate('AboutYou1')}
         >
           <Text className="flex-1 text-[13px]" style={{ color: COLORS.pink, fontFamily: FONTS.sans }}>
@@ -161,7 +158,7 @@ export default function ProfileScreen() {
         </TouchableOpacity>
       </View>
 
-      <Text className="mb-2 mt-4 text-[9px] uppercase tracking-[1px] text-textHint" style={{ fontFamily: FONTS.sansBold }}>
+      <Text className="mb-2 mt-4 text-[9px] uppercase tracking-[1px] text-textHint dark:text-slate-400" style={{ fontFamily: FONTS.sansBold }}>
         NOTIFICATIONS
       </Text>
       <View
@@ -187,17 +184,16 @@ export default function ProfileScreen() {
             val: shareWithDoc,
             set: setShareWithDoc
           }
-        ].map((item, i, arr) => (
+        ].map((item) => (
           <View
             key={item.label}
             className="flex-row items-center gap-3 py-3"
-            style={i < arr.length - 1 ? { borderBottomWidth: 0.5, borderBottomColor: COLORS.border } : undefined}
           >
             <View style={{ flex: 1 }}>
-              <Text className="text-[13px] text-textSecondary" style={{ fontFamily: FONTS.sans }}>
+              <Text className="text-[13px] text-textSecondary dark:text-slate-200" style={{ fontFamily: FONTS.sans }}>
                 {item.label}
               </Text>
-              <Text className="mt-[2px] text-[10px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
+              <Text className="mt-[2px] text-[10px] text-textMuted dark:text-slate-300" style={{ fontFamily: FONTS.sans }}>
                 {item.sub}
               </Text>
             </View>
@@ -211,20 +207,44 @@ export default function ProfileScreen() {
         ))}
       </View>
 
-      <Text className="mb-2 mt-4 text-[9px] uppercase tracking-[1px] text-textHint" style={{ fontFamily: FONTS.sansBold }}>
+      <Text className="mb-2 mt-4 text-[9px] uppercase tracking-[1px] text-textHint dark:text-slate-400" style={{ fontFamily: FONTS.sansBold }}>
+        APPEARANCE
+      </Text>
+      <View
+        className={UI_CLASSES.profileBlock}
+        style={UI_SHADOWS.medium}
+      >
+        <View className="flex-row items-center gap-3 py-3">
+          <View style={{ flex: 1 }}>
+            <Text className="text-[13px] text-textSecondary dark:text-slate-200" style={{ fontFamily: FONTS.sans }}>
+              Dark theme
+            </Text>
+            <Text className="mt-[2px] text-[10px] text-textMuted dark:text-slate-300" style={{ fontFamily: FONTS.sans }}>
+              Switch to a night-friendly premium look
+            </Text>
+          </View>
+          <Switch
+            value={themeMode === 'dark'}
+            onValueChange={toggleTheme}
+            trackColor={{ true: COLORS.gradStart, false: COLORS.border }}
+            thumbColor="#fff"
+          />
+        </View>
+      </View>
+
+      <Text className="mb-2 mt-4 text-[9px] uppercase tracking-[1px] text-textHint dark:text-slate-400" style={{ fontFamily: FONTS.sansBold }}>
         LEGAL
       </Text>
       <View
         className={UI_CLASSES.profileBlock}
         style={UI_SHADOWS.medium}
       >
-        {['Privacy policy', 'Terms of service', 'Data & permissions'].map((item, i, arr) => (
+        {['Privacy policy', 'Terms of service', 'Data & permissions'].map((item) => (
           <TouchableOpacity
             key={item}
             className="flex-row items-center gap-3 py-3"
-            style={i < arr.length - 1 ? { borderBottomWidth: 0.5, borderBottomColor: COLORS.border } : undefined}
           >
-            <Text className="flex-1 text-[13px] text-textSecondary" style={{ fontFamily: FONTS.sans }}>
+            <Text className="flex-1 text-[13px] text-textSecondary dark:text-slate-200" style={{ fontFamily: FONTS.sans }}>
               {item}
             </Text>
             <MaterialCommunityIcons name="chevron-right" size={16} color={COLORS.textMuted} />
@@ -239,9 +259,11 @@ export default function ProfileScreen() {
         </Text>
       </TouchableOpacity>
 
-      <Text className="pb-4 text-center text-[10px] text-textHint" style={{ fontFamily: FONTS.sans }}>
+      <Text className="pb-4 text-center text-[10px] text-textHint dark:text-slate-400" style={{ fontFamily: FONTS.sans }}>
         Nirogya v1.0 · Made with care for Indian women
       </Text>
     </ScreenWrapper>
   );
 }
+
+

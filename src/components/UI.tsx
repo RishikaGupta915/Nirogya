@@ -112,11 +112,11 @@ export function GhostButton({ label, onPress, style }: GhostButtonProps) {
         onPress={onPress}
         onPressIn={() => animateTo(0.99)}
         onPressOut={() => animateTo(1)}
-        className="mt-3 items-center rounded-xl2 border border-borderMed bg-white/60 py-[13px]"
+        className="mt-3 items-center rounded-xl2 bg-white/70 dark:bg-slate-900/62 py-[13px]"
         style={style}
         activeOpacity={0.85}
       >
-        <Text className="text-[12px] tracking-[0.15px] text-textSecondary" style={{ fontFamily: FONTS.sans }}>
+        <Text className="text-[12px] tracking-[0.15px] text-textSecondary dark:text-slate-200" style={{ fontFamily: FONTS.sans }}>
           {label}
         </Text>
       </TouchableOpacity>
@@ -173,9 +173,9 @@ export function Chip({
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.75}
-      className="m-[3px] rounded-full border px-[13px] py-[9px]"
+      className="m-[3px] rounded-full px-[13px] py-[9px]"
       style={[
-        { backgroundColor: c.bg, borderColor: c.border },
+        { backgroundColor: c.bg },
         style
       ]}
     >
@@ -196,7 +196,7 @@ export function SectionLabel({
 }) {
   return (
     <Text
-      className="mb-[10px] mt-3 text-[10px] uppercase tracking-[1.1px] text-textHint"
+      className="mb-[10px] mt-3 text-[10px] uppercase tracking-[1.1px] text-textHint dark:text-slate-400"
       style={[{ fontFamily: FONTS.sansBold }, style]}
     >
       {label}
@@ -214,14 +214,14 @@ interface InputWrapProps {
 export function InputWrap({ label, children, style }: InputWrapProps) {
   return (
     <View
-      className="mb-3 rounded-xl border border-borderSoft bg-card px-[14px] py-[12px]"
+      className="mb-3 rounded-xl bg-card dark:bg-slate-900/72 px-[14px] py-[12px]"
       style={[
         UI_SHADOWS.soft,
         style
       ]}
     >
       <Text
-        className="mb-[6px] text-[10px] uppercase tracking-[0.8px] text-textHint"
+        className="mb-[6px] text-[10px] uppercase tracking-[0.8px] text-textHint dark:text-slate-400"
         style={{ fontFamily: FONTS.sans }}
       >
         {label}
@@ -305,8 +305,8 @@ export function RiskBadge({ level }: { level: 'low' | 'medium' | 'high' }) {
   const c = map[level];
   return (
     <View
-      className="mb-2 self-start rounded-full border px-3 py-[5px]"
-      style={{ backgroundColor: c.bg, borderColor: c.border }}
+      className="mb-2 self-start rounded-full px-3 py-[5px]"
+      style={{ backgroundColor: c.bg }}
     >
       <Text
         className="text-[10px] tracking-[0.3px]"
@@ -317,3 +317,5 @@ export function RiskBadge({ level }: { level: 'low' | 'medium' | 'high' }) {
     </View>
   );
 }
+
+

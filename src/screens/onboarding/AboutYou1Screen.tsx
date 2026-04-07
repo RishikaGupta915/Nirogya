@@ -31,23 +31,23 @@ export default function AboutYou1Screen() {
       <ProgressDots total={5} current={0} />
       <ProgressBar current={1} total={5} />
 
-      <Text className="mb-2 text-[20px] text-textPrimary" style={{ fontFamily: FONTS.serif, fontWeight: '600' }}>
+      <Text className="mb-2 text-[20px] text-textPrimary dark:text-slate-100" style={{ fontFamily: FONTS.serif, fontWeight: '600' }}>
         Tell us about yourself
       </Text>
-      <Text className="mb-4 text-[12px] leading-[18px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
+      <Text className="mb-4 text-[12px] leading-[18px] text-textMuted dark:text-slate-300" style={{ fontFamily: FONTS.sans }}>
         This helps us make your health assessment accurate and personal.
       </Text>
 
       {/* City */}
       <View className="mb-3 gap-1">
         <Text
-          className="text-[10px] uppercase tracking-[0.8px] text-textHint"
+          className="text-[10px] uppercase tracking-[0.8px] text-textHint dark:text-slate-400"
           style={{ fontFamily: FONTS.sans }}
         >
           City / Town
         </Text>
         <TextInput
-          className="rounded-lg border border-borderSoft bg-card px-3 py-3 text-[14px] text-textPrimary"
+          className="rounded-lg border border-borderSoft bg-card dark:bg-slate-900/72 px-3 py-3 text-[14px] text-textPrimary dark:text-slate-100"
           style={{ fontFamily: FONTS.sans }}
           placeholder="e.g. Chennai, Coimbatore…"
           placeholderTextColor={COLORS.textHint}
@@ -102,3 +102,5 @@ export default function AboutYou1Screen() {
     </ScreenWrapper>
   );
 }
+
+

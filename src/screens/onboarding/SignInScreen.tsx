@@ -1,6 +1,6 @@
 // src/screens/onboarding/SignInScreen.tsx
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { View, Text, Alert, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -44,7 +44,7 @@ export default function SignInScreen() {
     <ScreenWrapper>
       <View className="items-center py-6">
         <Text
-          className="text-[28px] text-textPrimary"
+          className="text-[28px] text-textPrimary dark:text-slate-100"
           style={{ fontFamily: FONTS.serif, fontWeight: '600' }}
         >
           Nirogya
@@ -52,20 +52,20 @@ export default function SignInScreen() {
       </View>
 
       <Text
-        className="mb-2 text-[22px] text-textPrimary"
+        className="mb-2 text-[22px] text-textPrimary dark:text-slate-100"
         style={{ fontFamily: FONTS.serif, fontWeight: '600' }}
       >
         Welcome back
       </Text>
       <Text
-        className="mb-6 text-[12px] text-textMuted"
+        className="mb-6 text-[12px] text-textMuted dark:text-slate-300"
         style={{ fontFamily: FONTS.sans }}
       >
         Sign in with your email to continue your health journey.
       </Text>
 
       <TextInput
-        className="mb-3 rounded-[14px] border border-borderSoft bg-card px-[14px] py-3 text-[14px] text-textPrimary"
+        className="mb-3 rounded-[14px] bg-card dark:bg-slate-900/72 px-[14px] py-3 text-[14px] text-textPrimary dark:text-slate-100"
         style={{
           fontFamily: FONTS.sans,
           shadowColor: '#2f4b84',
@@ -74,16 +74,18 @@ export default function SignInScreen() {
           shadowRadius: 10,
           elevation: 2
         }}
-        placeholder="Email"
+        placeholder="you@example.com"
         placeholderTextColor={COLORS.textMuted}
         keyboardType="email-address"
         autoCapitalize="none"
+        autoCorrect={false}
+        textContentType="emailAddress"
         value={email}
         onChangeText={setEmail}
       />
 
       <TextInput
-        className="mb-3 rounded-[14px] border border-borderSoft bg-card px-[14px] py-3 text-[14px] text-textPrimary"
+        className="mb-3 rounded-[14px] bg-card dark:bg-slate-900/72 px-[14px] py-3 text-[14px] text-textPrimary dark:text-slate-100"
         style={{
           fontFamily: FONTS.sans,
           shadowColor: '#2f4b84',
@@ -92,12 +94,17 @@ export default function SignInScreen() {
           shadowRadius: 10,
           elevation: 2
         }}
-        placeholder="Password"
+        placeholder="Enter your password"
         placeholderTextColor={COLORS.textMuted}
         secureTextEntry
         autoCapitalize="none"
+        autoCorrect={false}
+        textContentType="password"
         value={password}
         onChangeText={setPassword}
+        onSubmitEditing={() => {
+          void handleEmailSignIn();
+        }}
       />
 
       <GradientButton
@@ -109,3 +116,6 @@ export default function SignInScreen() {
     </ScreenWrapper>
   );
 }
+
+
+

@@ -100,10 +100,10 @@ export default function AboutYou5Screen() {
       <ProgressDots total={5} current={4} />
       <ProgressBar current={5} total={5} />
 
-      <Text className="mb-2 text-[20px] text-textPrimary" style={{ fontFamily: FONTS.serif, fontWeight: '600' }}>
+      <Text className="mb-2 text-[20px] text-textPrimary dark:text-slate-100" style={{ fontFamily: FONTS.serif, fontWeight: '600' }}>
         Medical background
       </Text>
-      <Text className="mb-4 text-[12px] leading-[18px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
+      <Text className="mb-4 text-[12px] leading-[18px] text-textMuted dark:text-slate-300" style={{ fontFamily: FONTS.sans }}>
         Known conditions help us flag risks you may not have linked to your
         symptoms.
       </Text>
@@ -136,7 +136,7 @@ export default function AboutYou5Screen() {
 
       <SectionLabel label="Current medications (optional)" />
       <TextInput
-        className="mb-2 rounded-lg border border-borderSoft bg-card px-3 py-3 text-[13px] text-textPrimary"
+        className="mb-2 rounded-lg border border-borderSoft bg-card dark:bg-slate-900/72 px-3 py-3 text-[13px] text-textPrimary dark:text-slate-100"
         style={{ fontFamily: FONTS.sans, textAlignVertical: 'top' }}
         placeholder="e.g. thyroid meds, birth control, iron tablets…"
         placeholderTextColor={COLORS.textHint}
@@ -193,3 +193,5 @@ export default function AboutYou5Screen() {
     </ScreenWrapper>
   );
 }
+
+

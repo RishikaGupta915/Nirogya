@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import NiraIconButton from '../../components/NiraIconButton';
 import {
   View,
@@ -82,7 +82,7 @@ export default function HomeScreen() {
         <View className="mb-5 flex-row items-center justify-between pt-2">
           <View>
             <Text
-              className="text-[29px] text-textPrimary"
+              className="text-[31px] text-textPrimary dark:text-slate-100"
               style={{
                 fontFamily: FONTS.serif,
                 fontWeight: '600',
@@ -92,14 +92,14 @@ export default function HomeScreen() {
               Nirogya
             </Text>
             <Text
-              className="mt-[3px] text-[13px] text-textSecondary"
+              className="mt-[2px] text-[12px] text-textSecondary dark:text-slate-200"
               style={{ fontFamily: FONTS.sans }}
             >
               Good {timeOfDay}, {userProfile.name?.split(' ')[0] ?? 'there'}
             </Text>
           </View>
           <TouchableOpacity
-            className="h-[38px] w-[38px] items-center justify-center rounded-full border border-borderMed bg-white"
+            className="h-[40px] w-[40px] items-center justify-center rounded-full bg-white/85 dark:bg-slate-900/72"
             style={UI_SHADOWS.medium}
             onPress={() => nav.navigate('Profile')}
           >
@@ -120,10 +120,10 @@ export default function HomeScreen() {
           {WELLNESS_SPARKS.map((spark) => (
             <View
               key={spark}
-              className="rounded-full border border-borderSoft bg-white/80 px-[13px] py-[8px]"
+              className="rounded-full bg-white/80 dark:bg-slate-900/68 px-[13px] py-[8px]" style={UI_SHADOWS.soft}
             >
               <Text
-                className="text-[11px] tracking-[0.1px] text-textSecondary"
+                className="text-[11px] tracking-[0.1px] text-textSecondary dark:text-slate-200"
                 style={{ fontFamily: FONTS.sans }}
               >
                 {spark}
@@ -136,34 +136,36 @@ export default function HomeScreen() {
       <Animated.View style={recentAnim}>
         {recent.length > 0 && (
           <TouchableOpacity
-            className={`mb-5 ${UI_CLASSES.cardShell} border-pinkSoft p-4`}
+            className={`mb-4 ${UI_CLASSES.cardShell} px-4 py-[14px]`}
             style={UI_SHADOWS.strong}
             onPress={() => nav.navigate('History')}
             activeOpacity={0.85}
           >
-            <View className="mb-1 flex-row items-center justify-between">
+            <View className="mb-[2px] flex-row items-center justify-between">
               <Text
-                className="text-[13px] text-[#d5457a]"
+                className="text-[10px] uppercase tracking-[1.2px] text-textHint dark:text-slate-400"
                 style={{ fontFamily: FONTS.sansBold }}
               >
-                Last check: {recent[0].symptom}
+                Last check
               </Text>
               <View
                 className="h-2 w-2 rounded-full"
                 style={{
-                  backgroundColor:
-                    RISK_COLORS[recent[0].riskLevel as keyof typeof RISK_COLORS]
+                  backgroundColor: RISK_COLORS[recent[0].riskLevel] ?? COLORS.pink
                 }}
               />
             </View>
             <Text
-              className="mb-1 text-[12px] leading-[18px] text-textSecondary"
+              className="mb-[4px] text-[18px] leading-[23px] text-textPrimary dark:text-slate-100" style={{ fontFamily: FONTS.serif, fontWeight: '600' }}>
+              {recent[0].symptom}
+            </Text>
+            <Text className="mb-[6px] text-[12px] leading-[18px] text-textSecondary dark:text-slate-200"
               style={{ fontFamily: FONTS.sans }}
             >
               {recent[0].diagnosis}
             </Text>
             <Text
-              className="text-[10px] text-textMuted"
+              className="text-[10px] text-textMuted dark:text-slate-300"
               style={{ fontFamily: FONTS.sans }}
             >
               Tap to view history →
@@ -180,7 +182,7 @@ export default function HomeScreen() {
           TYPE YOUR SYMPTOM
         </Text>
         <View
-          className="mb-5 flex-row items-center gap-2 rounded-xl border border-borderSoft bg-card px-3 py-[11px]"
+          className="mb-5 flex-row items-center gap-2 rounded-xl2 bg-card dark:bg-slate-900/72 px-3 py-[11px]"
           style={UI_SHADOWS.medium}
         >
           <MaterialCommunityIcons
@@ -189,7 +191,7 @@ export default function HomeScreen() {
             color={COLORS.textMuted}
           />
           <TextInput
-            className="flex-1 text-[13px] text-textPrimary"
+            className="flex-1 text-[13px] text-textPrimary dark:text-slate-100"
             style={{ fontFamily: FONTS.sans }}
             placeholder="e.g. knee pain, hair loss, nausea…"
             placeholderTextColor={COLORS.textHint}
@@ -224,10 +226,9 @@ export default function HomeScreen() {
             return (
               <TouchableOpacity
                 key={cat.id}
-                className="w-[47%] rounded-xl2 border p-4"
+                className="w-[47%] rounded-xl2 px-4 py-[13px]"
                 style={{
                   backgroundColor: c.bg,
-                  borderColor: c.border,
                   ...UI_SHADOWS.soft
                 }}
                 onPress={() => handleCategory(cat)}
@@ -250,7 +251,7 @@ export default function HomeScreen() {
                   {cat.label}
                 </Text>
                 <Text
-                  className="text-[10px] leading-[15px] text-textMuted"
+                  className="text-[10px] leading-[15px] text-textMuted dark:text-slate-300"
                   style={{ fontFamily: FONTS.sans }}
                 >
                   {cat.sub}
@@ -263,3 +264,6 @@ export default function HomeScreen() {
     </ScreenWrapper>
   );
 }
+
+
+

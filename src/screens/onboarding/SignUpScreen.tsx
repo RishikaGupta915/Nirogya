@@ -1,6 +1,6 @@
 // src/screens/onboarding/SignUpScreen.tsx
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Text, Alert, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -69,20 +69,20 @@ export default function SignUpScreen() {
       <ProgressDots total={4} current={2} />
 
       <Text
-        className="mb-2 text-[22px] text-textPrimary"
+        className="mb-2 text-[22px] text-textPrimary dark:text-slate-100"
         style={{ fontFamily: FONTS.serif, fontWeight: '600' }}
       >
         Create your account
       </Text>
       <Text
-        className="mb-6 text-[12px] leading-[18px] text-textMuted"
+        className="mb-6 text-[12px] leading-[18px] text-textMuted dark:text-slate-300"
         style={{ fontFamily: FONTS.sans }}
       >
         Create your account with email and password.
       </Text>
 
       <TextInput
-        className="mb-3 rounded-[14px] border border-borderSoft bg-card px-[14px] py-3 text-[14px] text-textPrimary"
+        className="mb-3 rounded-[14px] bg-card dark:bg-slate-900/72 px-[14px] py-3 text-[14px] text-textPrimary dark:text-slate-100"
         style={{
           fontFamily: FONTS.sans,
           shadowColor: '#2f4b84',
@@ -91,14 +91,16 @@ export default function SignUpScreen() {
           shadowRadius: 10,
           elevation: 2
         }}
-        placeholder="Full name"
+        placeholder="Your full name"
         placeholderTextColor={COLORS.textMuted}
+        autoCorrect={false}
+        textContentType="name"
         value={name}
         onChangeText={setName}
       />
 
       <TextInput
-        className="mb-3 rounded-[14px] border border-borderSoft bg-card px-[14px] py-3 text-[14px] text-textPrimary"
+        className="mb-3 rounded-[14px] bg-card dark:bg-slate-900/72 px-[14px] py-3 text-[14px] text-textPrimary dark:text-slate-100"
         style={{
           fontFamily: FONTS.sans,
           shadowColor: '#2f4b84',
@@ -107,16 +109,18 @@ export default function SignUpScreen() {
           shadowRadius: 10,
           elevation: 2
         }}
-        placeholder="Email"
+        placeholder="you@example.com"
         placeholderTextColor={COLORS.textMuted}
         keyboardType="email-address"
         autoCapitalize="none"
+        autoCorrect={false}
+        textContentType="emailAddress"
         value={email}
         onChangeText={setEmail}
       />
 
       <TextInput
-        className="mb-3 rounded-[14px] border border-borderSoft bg-card px-[14px] py-3 text-[14px] text-textPrimary"
+        className="mb-3 rounded-[14px] bg-card dark:bg-slate-900/72 px-[14px] py-3 text-[14px] text-textPrimary dark:text-slate-100"
         style={{
           fontFamily: FONTS.sans,
           shadowColor: '#2f4b84',
@@ -125,16 +129,21 @@ export default function SignUpScreen() {
           shadowRadius: 10,
           elevation: 2
         }}
-        placeholder="Password"
+        placeholder="Create a password (min 6 characters)"
         placeholderTextColor={COLORS.textMuted}
         secureTextEntry
         autoCapitalize="none"
+        autoCorrect={false}
+        textContentType="newPassword"
         value={password}
         onChangeText={setPassword}
+        onSubmitEditing={() => {
+          void handleEmailSignUp();
+        }}
       />
 
       <Text
-        className="mb-4 text-[11px] leading-[17px] text-textMuted"
+        className="mb-4 text-[11px] leading-[17px] text-textMuted dark:text-slate-300"
         style={{ fontFamily: FONTS.sans }}
       >
         By continuing, you agree to our{' '}
