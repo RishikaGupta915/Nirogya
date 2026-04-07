@@ -1,0 +1,57 @@
+// Prisma schema for Supabase (PostgreSQL)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Profile {
+  id            String      @id @default(uuid()) @db.Uuid
+  uid           String      @unique @db.Uuid
+  name          String?     @db.Text
+  email         String?     @db.Text
+  language      String?     @db.Text
+  city          String?     @db.Text
+  ageGroup      String?     @db.Text
+  lifeStage     String?     @db.Text
+  activityLevel String?     @db.Text
+  dietType      String?     @db.Text
+  conditions    String[]    @db.Text
+  familyHistory String[]    @db.Text
+  medications   String?     @db.Text
+  allergies     String[]    @db.Text
+  sleepHours    Decimal?    @db.Decimal(4, 1)
+  sleepQuality  String[]    @db.Text
+  stressLevel   String?     @db.Text
+  moodSwings    Boolean?
+  anxiety       Boolean?
+  lowMotivation Boolean?
+  updatedAt     DateTime    @default(now()) @db.Timestamptz
+
+  assessments   Assessment[]
+
+  @@map("profiles")
+}
+
+model Assessment {
+  id        String   @id @default(uuid()) @db.Uuid
+  uid       String   @db.Uuid
+  symptom   String?  @db.Text
+  answers   Json?
+  diagnosis String?  @db.Text
+  riskScore Int?
+  riskLevel String?  @db.Text
+  nextSteps String[] @db.Text
+  rawAiText String?  @db.Text
+  createdAt DateTime @default(now()) @db.Timestamptz
+
+  profile   Profile? @relation(fields: [uid], references: [uid])
+
+  @@index([uid, createdAt(sort: Desc)])
+  @@map("assessments")
+}
