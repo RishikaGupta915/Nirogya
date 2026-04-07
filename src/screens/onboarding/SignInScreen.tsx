@@ -17,14 +17,24 @@ export default function SignInScreen() {
   const [password, setPassword] = useState('');
 
   const handleEmailSignIn = async () => {
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
+      Alert.alert('Missing email', 'Please enter your email address.');
+      return;
+    }
+    if (!password) {
+      Alert.alert('Missing password', 'Please enter your password.');
+      return;
+    }
+
     setLoading(true);
     try {
-      const user = await signIn(email, password);
+      const user = await signIn(trimmedEmail, password);
       if (userProfile.language) {
         await saveLanguage(user.uid, userProfile.language);
       }
     } catch (err: any) {
-      Alert.alert('Sign in failed', err.message);
+      Alert.alert('Sign in failed', err?.message || 'Please try again.');
     } finally {
       setLoading(false);
     }
@@ -33,15 +43,24 @@ export default function SignInScreen() {
   return (
     <ScreenWrapper>
       <View className="items-center py-6">
-        <Text className="text-[28px] text-textPrimary" style={{ fontFamily: FONTS.serif, fontWeight: '600' }}>
+        <Text
+          className="text-[28px] text-textPrimary"
+          style={{ fontFamily: FONTS.serif, fontWeight: '600' }}
+        >
           Nirogya
         </Text>
       </View>
 
-      <Text className="mb-2 text-[22px] text-textPrimary" style={{ fontFamily: FONTS.serif, fontWeight: '600' }}>
+      <Text
+        className="mb-2 text-[22px] text-textPrimary"
+        style={{ fontFamily: FONTS.serif, fontWeight: '600' }}
+      >
         Welcome back
       </Text>
-      <Text className="mb-6 text-[12px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
+      <Text
+        className="mb-6 text-[12px] text-textMuted"
+        style={{ fontFamily: FONTS.sans }}
+      >
         Sign in with your email to continue your health journey.
       </Text>
 

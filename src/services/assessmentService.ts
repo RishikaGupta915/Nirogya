@@ -3,6 +3,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from './supabaseClient';
+import { backendFetch } from './backendApi';
 
 export interface Assessment {
   id?: string;
@@ -33,25 +34,78 @@ async function loadCache(uid: string): Promise<Assessment[]> {
   }
 }
 
-export async function saveAssessment(data: Omit<Assessment, 'id' | 'createdAt'>) {
-  const createdAt = new Date().toISOString();
-  const payload = { ...data, created_at: createdAt, raw_ai_text: data.rawAiText };
+export async function saveAssessment(
+  data: Omit<Assessment, 'id' | 'createdAt'>
+) {
+  let createdAt = new Date().toISOString();
 
-  const { error } = await supabase.from('assessments').insert(payload);
-  if (error) throw error;
+  try {
+    const response = await backendFetch<{ id?: string; createdAt?: string }>(
+      '/assessments',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          symptom: data.symptom,
+          answers: data.answers,
+          diagnosis: data.diagnosis,
+          riskScore: data.riskScore,
+          riskLevel: data.riskLevel,
+          nextSteps: data.nextSteps,
+          rawAiText: data.rawAiText
+        })
+      }
+    );
+
+    if (typeof response?.createdAt === 'string' && response.createdAt.trim()) {
+      createdAt = response.createdAt;
+    }
+  } catch (backendErr) {
+    console.warn('[Assessment API Fallback to Supabase]', backendErr);
+    const payload = {
+      ...data,
+      created_at: createdAt,
+      raw_ai_text: data.rawAiText
+    };
+
+    const { error } = await supabase.from('assessments').insert(payload);
+    if (error) throw error;
+  }
 
   // Update cache
   const existing = await loadCache(data.uid);
   const entry: Assessment = { ...data, createdAt, id: undefined };
   const next = [entry, ...existing].sort(
     (a, b) =>
-      new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime()
+      new Date(b.createdAt ?? 0).getTime() -
+      new Date(a.createdAt ?? 0).getTime()
   );
   await saveCache(data.uid, next);
   return entry.createdAt;
 }
 
 export async function getUserAssessments(uid: string): Promise<Assessment[]> {
+  try {
+    const data = await backendFetch<any[]>('/assessments', { method: 'GET' });
+    if (Array.isArray(data)) {
+      const mapped = data.map((row: any) => ({
+        id: row.id,
+        uid: row.uid,
+        symptom: row.symptom,
+        answers: row.answers,
+        diagnosis: row.diagnosis,
+        riskScore: row.riskScore ?? row.risk_score,
+        riskLevel: row.riskLevel ?? row.risk_level,
+        nextSteps: row.nextSteps ?? row.next_steps ?? [],
+        rawAiText: row.rawAiText ?? row.raw_ai_text ?? '',
+        createdAt: row.createdAt ?? row.created_at
+      })) as Assessment[];
+      await saveCache(uid, mapped);
+      return mapped;
+    }
+  } catch (backendErr) {
+    console.warn('[Assessment API Fallback to Supabase]', backendErr);
+  }
+
   const { data, error } = await supabase
     .from('assessments')
     .select('*')
@@ -79,7 +133,10 @@ export async function getUserAssessments(uid: string): Promise<Assessment[]> {
   return loadCache(uid);
 }
 
-export async function getRecentAssessments(uid: string, n = 5): Promise<Assessment[]> {
+export async function getRecentAssessments(
+  uid: string,
+  n = 5
+): Promise<Assessment[]> {
   const list = await getUserAssessments(uid);
   return list.slice(0, n);
 }

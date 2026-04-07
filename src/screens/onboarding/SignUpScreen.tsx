@@ -19,17 +19,46 @@ export default function SignUpScreen() {
   const [password, setPassword] = useState('');
 
   const handleEmailSignUp = async () => {
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim();
+
+    if (!trimmedName) {
+      Alert.alert('Missing name', 'Please enter your full name.');
+      return;
+    }
+
+    if (!trimmedEmail) {
+      Alert.alert('Missing email', 'Please enter your email address.');
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert('Weak password', 'Password must be at least 6 characters.');
+      return;
+    }
+
     setLoading(true);
     try {
-      const result = await signUp(email, password, name);
-      const user = result.user;
-      if (userProfile.language) {
-        await saveLanguage(user.uid, userProfile.language);
+      const signUpResult = await signUp(trimmedEmail, password, trimmedName);
+
+      if (signUpResult.requiresEmailVerification) {
+        Alert.alert(
+          'Verify your email',
+          'Your account was created. Please verify your email, then sign in.'
+        );
+        nav.navigate('SignIn');
+        return;
       }
-      setUserProfile({ name: (name || user.displayName) ?? undefined });
+
+      if (userProfile.language && signUpResult.user?.uid) {
+        await saveLanguage(signUpResult.user.uid, userProfile.language);
+      }
+      setUserProfile({
+        name: trimmedName || signUpResult.user?.displayName || undefined
+      });
       nav.navigate('AboutYou1');
     } catch (err: any) {
-      Alert.alert('Sign up failed', err.message);
+      Alert.alert('Sign up failed', err?.message || 'Please try again.');
     } finally {
       setLoading(false);
     }
@@ -39,10 +68,16 @@ export default function SignUpScreen() {
     <ScreenWrapper>
       <ProgressDots total={4} current={2} />
 
-      <Text className="mb-2 text-[22px] text-textPrimary" style={{ fontFamily: FONTS.serif, fontWeight: '600' }}>
+      <Text
+        className="mb-2 text-[22px] text-textPrimary"
+        style={{ fontFamily: FONTS.serif, fontWeight: '600' }}
+      >
         Create your account
       </Text>
-      <Text className="mb-6 text-[12px] leading-[18px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
+      <Text
+        className="mb-6 text-[12px] leading-[18px] text-textMuted"
+        style={{ fontFamily: FONTS.sans }}
+      >
         Create your account with email and password.
       </Text>
 
@@ -98,7 +133,10 @@ export default function SignUpScreen() {
         onChangeText={setPassword}
       />
 
-      <Text className="mb-4 text-[11px] leading-[17px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
+      <Text
+        className="mb-4 text-[11px] leading-[17px] text-textMuted"
+        style={{ fontFamily: FONTS.sans }}
+      >
         By continuing, you agree to our{' '}
         <Text style={{ color: COLORS.pink }}>Terms of Service</Text> and{' '}
         <Text style={{ color: COLORS.pink }}>Privacy Policy</Text>.

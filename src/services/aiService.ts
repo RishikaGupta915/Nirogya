@@ -12,6 +12,7 @@ import {
 } from './geminiService';
 import { computeFairnessScore } from './fairnessService';
 import { translateMany } from './translateService';
+import { backendFetch } from './backendApi';
 import { Alert } from 'react-native';
 
 const NIM_BASE_URL =
@@ -182,12 +183,120 @@ export interface DiagnosisResult {
   urgency: string;
 }
 
+type BackendQuestionsResponse = {
+  questions: QuestionSet['questions'];
+  source?: string;
+  language?: string;
+};
+
+type BackendDiagnosisResponse = {
+  assessment: DiagnosisResult & { fairnessScore: number };
+  source?: string;
+  language?: string;
+};
+
+export type ConversationStart = {
+  conversationId: string;
+  greeting: string;
+  language: string;
+};
+
+export type ConversationReply = {
+  reply: string;
+  isUrgent: boolean;
+  source?: string;
+  conversationId: string;
+};
+
+export type VoiceTranscriptionResponse = {
+  text: string;
+  language: string;
+  confidence: number | null;
+  source: string;
+};
+
+export type ClinicalImageAnalysisResponse = {
+  analysis: string;
+  followUpQuestion: string;
+  warning: string;
+  source: string;
+};
+
+export type DocumentExtractionResponse = {
+  rawText: string;
+  extracted: Record<string, any>;
+  confidence: number;
+  clarificationNeeded: { field: string; question: string }[];
+  source: string;
+  language: string;
+};
+
+export type TriageResponse = {
+  triage: 'EMERGENCY' | 'CONSULT' | 'SELF_CARE';
+  shouldStop: boolean;
+  conditions: any[];
+  question: any | null;
+  source: string;
+};
+
+export type FullPipelineResponse = {
+  contextMap: Record<string, any>;
+  triage: TriageResponse;
+  questions: QuestionSet['questions'];
+  assessment: DiagnosisResult & {
+    fairnessScore: number;
+    fairness: {
+      equityScore: number;
+      affordability: number;
+      accessibility: number;
+      relevance: number;
+      estimatedCost: number;
+      explanation: string;
+    };
+  };
+  riskFlags: {
+    condition: string;
+    severity: string;
+    confidence: number;
+    triggerRules: string[];
+  }[];
+  recommendation: {
+    carePathway: string;
+    facilityType: string;
+    estimatedCostLow: number;
+    estimatedCostHigh: number;
+    pmjayApplicable: boolean;
+  };
+  assistantReply: string;
+  sources: Record<string, string | undefined>;
+};
+
 // ── Generate follow-up questions for a symptom ────────────────
 export async function generateQuestions(
   symptom: string,
   userProfile: Record<string, any>,
   language: string = 'en'
 ): Promise<QuestionSet> {
+  try {
+    const response = await backendFetch<BackendQuestionsResponse>(
+      '/ai/questions',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          symptom,
+          profile: userProfile,
+          language
+        })
+      }
+    );
+
+    if (Array.isArray(response?.questions) && response.questions.length > 0) {
+      return { questions: response.questions };
+    }
+  } catch (err) {
+    console.warn('[Backend AI Questions Error]', err);
+  }
+
   const prompt = `
 You are a medical AI assistant specialising in women's health in India.
 A user reports: "${symptom}"
@@ -286,6 +395,27 @@ export async function generateDiagnosis(
   userProfile: Record<string, any>,
   language: string = 'en'
 ): Promise<DiagnosisResult & { fairnessScore: number }> {
+  try {
+    const response = await backendFetch<BackendDiagnosisResponse>(
+      '/ai/diagnosis',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          symptom,
+          answers,
+          profile: userProfile,
+          language
+        })
+      }
+    );
+
+    if (response?.assessment?.diagnosis) {
+      return response.assessment;
+    }
+  } catch (err) {
+    console.warn('[Backend AI Diagnosis Error]', err);
+  }
+
   const answersText = Object.entries(answers)
     .map(([q, a]) => `- ${q}: ${a}`)
     .join('\n');
@@ -353,7 +483,14 @@ riskScore must be 0-100.
       );
       result.urgency = translated[2 + stepsCount] ?? result.urgency;
     }
-    const fairnessScore = computeFairnessScore(userProfile, result.diagnosis);
+    const fairnessScore = computeFairnessScore(userProfile, {
+      estimatedCost:
+        result.riskLevel === 'high'
+          ? 3500
+          : result.riskLevel === 'medium'
+            ? 1500
+            : 500
+    });
     return { ...result, fairnessScore };
   }
 
@@ -380,7 +517,14 @@ riskScore must be 0-100.
       result.urgency = translated[2 + stepsCount] ?? result.urgency;
     }
     // Compute fairness score
-    const fairnessScore = computeFairnessScore(userProfile, result.diagnosis);
+    const fairnessScore = computeFairnessScore(userProfile, {
+      estimatedCost:
+        result.riskLevel === 'high'
+          ? 3500
+          : result.riskLevel === 'medium'
+            ? 1500
+            : 500
+    });
     return { ...result, fairnessScore };
   } catch (e) {
     console.log('Gemini parse error (diagnosis):', e, clean);
@@ -389,4 +533,97 @@ riskScore must be 0-100.
       'Failed to parse diagnosis from AI response. Please try again.'
     );
   }
+}
+
+export async function startConversation(
+  userProfile: Record<string, any>,
+  language: string = 'en'
+): Promise<ConversationStart> {
+  return backendFetch<ConversationStart>('/ai/conversations/start', {
+    method: 'POST',
+    body: JSON.stringify({ profile: userProfile, language })
+  });
+}
+
+export async function sendConversationMessage(
+  conversationId: string,
+  message: string,
+  userProfile: Record<string, any>,
+  language: string = 'en'
+): Promise<ConversationReply> {
+  return backendFetch<ConversationReply>(
+    `/ai/conversations/${conversationId}/message`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ message, profile: userProfile, language })
+    }
+  );
+}
+
+export async function transcribeVoice(
+  audioBase64: string,
+  language: string = 'en',
+  mimeType?: string
+): Promise<VoiceTranscriptionResponse> {
+  return backendFetch<VoiceTranscriptionResponse>('/ai/voice/transcribe', {
+    method: 'POST',
+    body: JSON.stringify({ audioBase64, language, mimeType })
+  });
+}
+
+export async function analyzeClinicalImage(
+  imageBase64: string,
+  userProfile: Record<string, any>,
+  language: string = 'en'
+): Promise<ClinicalImageAnalysisResponse> {
+  return backendFetch<ClinicalImageAnalysisResponse>('/ai/image/analyze', {
+    method: 'POST',
+    body: JSON.stringify({ imageBase64, profile: userProfile, language })
+  });
+}
+
+export async function extractMedicalDocument(
+  imageBase64: string,
+  documentType: string,
+  language: string = 'en'
+): Promise<DocumentExtractionResponse> {
+  return backendFetch<DocumentExtractionResponse>('/ai/documents/extract', {
+    method: 'POST',
+    body: JSON.stringify({ imageBase64, documentType, language })
+  });
+}
+
+export async function triageSymptoms(
+  symptomText: string,
+  profile: Record<string, any>,
+  language: string = 'en'
+): Promise<TriageResponse> {
+  return backendFetch<TriageResponse>('/ai/triage', {
+    method: 'POST',
+    body: JSON.stringify({
+      symptomText,
+      sex: profile?.gender,
+      age: profile?.age,
+      language
+    })
+  });
+}
+
+export async function runFullAiPipeline(
+  symptom: string,
+  answers: Record<string, string>,
+  userProfile: Record<string, any>,
+  language: string = 'en',
+  history: { role: 'assistant' | 'user'; content: string }[] = []
+): Promise<FullPipelineResponse> {
+  return backendFetch<FullPipelineResponse>('/ai/pipeline/run', {
+    method: 'POST',
+    body: JSON.stringify({
+      symptom,
+      answers,
+      profile: userProfile,
+      language,
+      history
+    })
+  });
 }

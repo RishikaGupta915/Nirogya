@@ -1,13 +1,21 @@
-import React, { useCallback } from 'react';
-import { View, Text, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  FlatList,
+  ActivityIndicator
+} from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { COLORS, FONTS, RISK_COLORS, SPACING } from '../../constants/theme';
 import { UI_CLASSES, UI_SHADOWS } from '../../constants/ui';
-import { Assessment } from '../../services/assessmentService';
+import {
+  Assessment,
+  getUserAssessments
+} from '../../services/assessmentService';
 import { auth } from '../../services/authService';
-import { useUserAssessments } from '../../hooks/useUserAssessments';
 
 function timeAgo(ts: any): string {
   if (!ts) return '';
@@ -24,11 +32,29 @@ function timeAgo(ts: any): string {
 export default function HistoryScreen() {
   const nav = useNavigation<any>();
   const uid = auth.currentUser?.uid;
-  const { assessments, loading, reload } = useUserAssessments(uid);
+  const [assessments, setAssessments] = useState<Assessment[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const reload = useCallback(async () => {
+    if (!uid) {
+      setAssessments([]);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const list = await getUserAssessments(uid);
+      setAssessments(list);
+    } catch (err) {
+      console.warn('[History] Failed to load assessments', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [uid]);
 
   useFocusEffect(
     useCallback(() => {
-      reload();
+      void reload();
     }, [reload])
   );
 
@@ -47,20 +73,38 @@ export default function HistoryScreen() {
       }
       activeOpacity={0.8}
     >
-      <View className="h-[10px] w-[10px] shrink-0 rounded-full" style={{ backgroundColor: RISK_COLORS[item.riskLevel] }} />
+      <View
+        className="h-[10px] w-[10px] shrink-0 rounded-full"
+        style={{ backgroundColor: RISK_COLORS[item.riskLevel] }}
+      />
       <View style={{ flex: 1 }}>
-        <Text className="mb-[2px] text-[13px] text-textPrimary" style={{ fontFamily: FONTS.sansBold }}>
+        <Text
+          className="mb-[2px] text-[13px] text-textPrimary"
+          style={{ fontFamily: FONTS.sansBold }}
+        >
           {item.symptom}
         </Text>
-        <Text className="text-[11px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
+        <Text
+          className="text-[11px] text-textMuted"
+          style={{ fontFamily: FONTS.sans }}
+        >
           {item.diagnosis}
         </Text>
       </View>
       <View className="items-end" style={{ gap: 4 }}>
-        <Text className="text-[10px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
+        <Text
+          className="text-[10px] text-textMuted"
+          style={{ fontFamily: FONTS.sans }}
+        >
           {timeAgo(item.createdAt)}
         </Text>
-        <Text className="text-[11px]" style={{ color: RISK_COLORS[item.riskLevel], fontFamily: FONTS.sansBold }}>
+        <Text
+          className="text-[11px]"
+          style={{
+            color: RISK_COLORS[item.riskLevel],
+            fontFamily: FONTS.sansBold
+          }}
+        >
           {item.riskScore}%
         </Text>
       </View>
@@ -71,37 +115,82 @@ export default function HistoryScreen() {
     <ScreenWrapper scrollable={false} padded={false}>
       <View className="px-4 pb-3 pt-4">
         <View>
-          <Text className="text-[26px] text-textPrimary" style={{ fontFamily: FONTS.serif, fontWeight: '600' }}>
+          <Text
+            className="text-[26px] text-textPrimary"
+            style={{ fontFamily: FONTS.serif, fontWeight: '600' }}
+          >
             History
           </Text>
-          <Text className="mt-[2px] text-[12px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
+          <Text
+            className="mt-[2px] text-[12px] text-textMuted"
+            style={{ fontFamily: FONTS.sans }}
+          >
             Your past assessments
           </Text>
         </View>
       </View>
 
       <View className="mb-4 flex-row gap-2 px-4">
-        <View className="flex-1 rounded-xl border bg-card p-3" style={{ borderColor: COLORS.pinkBorder, ...UI_SHADOWS.soft }}>
-          <Text className="mb-[2px] text-[22px]" style={{ color: COLORS.pink, fontFamily: FONTS.serif, fontWeight: '600' }}>
+        <View
+          className="flex-1 rounded-xl border bg-card p-3"
+          style={{ borderColor: COLORS.pinkBorder, ...UI_SHADOWS.soft }}
+        >
+          <Text
+            className="mb-[2px] text-[22px]"
+            style={{
+              color: COLORS.pink,
+              fontFamily: FONTS.serif,
+              fontWeight: '600'
+            }}
+          >
             {total}
           </Text>
-          <Text className="text-[10px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
+          <Text
+            className="text-[10px] text-textMuted"
+            style={{ fontFamily: FONTS.sans }}
+          >
             checks done
           </Text>
         </View>
-        <View className="flex-1 rounded-xl border bg-card p-3" style={{ borderColor: 'rgba(52,211,153,0.25)', ...UI_SHADOWS.soft }}>
-          <Text className="mb-[2px] text-[22px]" style={{ color: COLORS.teal, fontFamily: FONTS.serif, fontWeight: '600' }}>
+        <View
+          className="flex-1 rounded-xl border bg-card p-3"
+          style={{ borderColor: 'rgba(52,211,153,0.25)', ...UI_SHADOWS.soft }}
+        >
+          <Text
+            className="mb-[2px] text-[22px]"
+            style={{
+              color: COLORS.teal,
+              fontFamily: FONTS.serif,
+              fontWeight: '600'
+            }}
+          >
             {total - needsAttn}
           </Text>
-          <Text className="text-[10px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
+          <Text
+            className="text-[10px] text-textMuted"
+            style={{ fontFamily: FONTS.sans }}
+          >
             manageable
           </Text>
         </View>
-        <View className="flex-1 rounded-xl border bg-card p-3" style={{ borderColor: 'rgba(251,113,133,0.25)', ...UI_SHADOWS.soft }}>
-          <Text className="mb-[2px] text-[22px]" style={{ color: COLORS.red, fontFamily: FONTS.serif, fontWeight: '600' }}>
+        <View
+          className="flex-1 rounded-xl border bg-card p-3"
+          style={{ borderColor: 'rgba(251,113,133,0.25)', ...UI_SHADOWS.soft }}
+        >
+          <Text
+            className="mb-[2px] text-[22px]"
+            style={{
+              color: COLORS.red,
+              fontFamily: FONTS.serif,
+              fontWeight: '600'
+            }}
+          >
             {needsAttn}
           </Text>
-          <Text className="text-[10px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
+          <Text
+            className="text-[10px] text-textMuted"
+            style={{ fontFamily: FONTS.sans }}
+          >
             needs care
           </Text>
         </View>
@@ -113,7 +202,10 @@ export default function HistoryScreen() {
           size={16}
           color={needsAttn > 0 ? COLORS.red : COLORS.teal}
         />
-        <Text className="flex-1 text-[11px] text-textSecondary" style={{ fontFamily: FONTS.sans }}>
+        <Text
+          className="flex-1 text-[11px] text-textSecondary"
+          style={{ fontFamily: FONTS.sans }}
+        >
           {needsAttn > 0
             ? `${needsAttn} recent checks may need attention.`
             : 'Great consistency. Your recent checks look manageable.'}
@@ -121,14 +213,27 @@ export default function HistoryScreen() {
       </View>
 
       {loading ? (
-        <ActivityIndicator color={COLORS.pink} style={{ marginTop: SPACING.xl }} />
+        <ActivityIndicator
+          color={COLORS.pink}
+          style={{ marginTop: SPACING.xl }}
+        />
       ) : assessments.length === 0 ? (
         <View className="items-center gap-3 pt-8">
-          <MaterialCommunityIcons name="clipboard-text-outline" size={36} color={COLORS.textMuted} />
-          <Text className="text-[18px] text-textSecondary" style={{ fontFamily: FONTS.serif }}>
+          <MaterialCommunityIcons
+            name="clipboard-text-outline"
+            size={36}
+            color={COLORS.textMuted}
+          />
+          <Text
+            className="text-[18px] text-textSecondary"
+            style={{ fontFamily: FONTS.serif }}
+          >
             No assessments yet
           </Text>
-          <Text className="text-center text-[12px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
+          <Text
+            className="text-center text-[12px] text-textMuted"
+            style={{ fontFamily: FONTS.sans }}
+          >
             Start a symptom check from the home screen
           </Text>
         </View>
@@ -137,7 +242,10 @@ export default function HistoryScreen() {
           data={assessments}
           keyExtractor={(i) => i.id ?? Math.random().toString()}
           renderItem={renderItem}
-          contentContainerStyle={{ paddingHorizontal: SPACING.lg, paddingBottom: SPACING.xl }}
+          contentContainerStyle={{
+            paddingHorizontal: SPACING.lg,
+            paddingBottom: SPACING.xl
+          }}
           ItemSeparatorComponent={() => <View style={{ height: SPACING.sm }} />}
           showsVerticalScrollIndicator={false}
         />

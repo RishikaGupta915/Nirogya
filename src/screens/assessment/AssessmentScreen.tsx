@@ -16,7 +16,11 @@ import { COLORS, FONTS, SPACING } from '../../constants/theme';
 import { UI_SHADOWS } from '../../constants/ui';
 import { useApp } from '../../context/AppContext';
 import { useEntranceAnimation } from '../../hooks/useEntranceAnimation';
-import { generateQuestions, generateDiagnosis } from '../../services/aiService';
+import {
+  generateQuestions,
+  generateDiagnosis,
+  runFullAiPipeline
+} from '../../services/aiService';
 import { saveAssessment } from '../../services/assessmentService';
 import { auth } from '../../services/authService';
 
@@ -90,12 +94,28 @@ export default function AssessmentScreen() {
 
     setSubmitting(true);
     try {
-      const diagnosis = await generateDiagnosis(
-        symptom,
-        answers,
-        userProfile,
-        userProfile.language ?? 'en'
-      );
+      const language = userProfile.language ?? 'en';
+      let diagnosis: any;
+      let pipelinePayload: any = null;
+
+      try {
+        const pipeline = await runFullAiPipeline(
+          symptom,
+          answers,
+          userProfile,
+          language
+        );
+        diagnosis = pipeline.assessment;
+        pipelinePayload = pipeline;
+      } catch (pipelineErr) {
+        console.warn('[Assessment] Full pipeline fallback:', pipelineErr);
+        diagnosis = await generateDiagnosis(
+          symptom,
+          answers,
+          userProfile,
+          language
+        );
+      }
 
       const uid = auth.currentUser?.uid;
       if (uid) {
@@ -107,7 +127,10 @@ export default function AssessmentScreen() {
           riskScore: diagnosis.riskScore,
           riskLevel: diagnosis.riskLevel,
           nextSteps: diagnosis.nextSteps,
-          rawAiText: JSON.stringify(diagnosis)
+          rawAiText: JSON.stringify({
+            diagnosis,
+            pipeline: pipelinePayload
+          })
         });
       }
 
@@ -124,10 +147,16 @@ export default function AssessmentScreen() {
       <ScreenWrapper scrollable={false}>
         <View className="flex-1 items-center justify-center gap-3">
           <ActivityIndicator size="large" color={COLORS.gradStart} />
-          <Text className="text-center text-[18px] text-textPrimary" style={{ fontFamily: FONTS.serif }}>
+          <Text
+            className="text-center text-[18px] text-textPrimary"
+            style={{ fontFamily: FONTS.serif }}
+          >
             Preparing your questions…
           </Text>
-          <Text className="text-center text-[12px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
+          <Text
+            className="text-center text-[12px] text-textMuted"
+            style={{ fontFamily: FONTS.sans }}
+          >
             Personalising based on your profile
           </Text>
         </View>
@@ -139,11 +168,22 @@ export default function AssessmentScreen() {
     return (
       <ScreenWrapper scrollable={false}>
         <View className="flex-1 items-center justify-center gap-3">
-          <MaterialCommunityIcons name="wifi-off" size={36} color={COLORS.textMuted} />
-          <Text className="text-center text-[18px] text-textPrimary" style={{ fontFamily: FONTS.serif }}>
+          <MaterialCommunityIcons
+            name="wifi-off"
+            size={36}
+            color={COLORS.textMuted}
+          />
+          <Text
+            className="text-center text-[18px] text-textPrimary"
+            style={{ fontFamily: FONTS.serif }}
+          >
             {error}
           </Text>
-          <GradientButton label="Try again" onPress={loadQuestions} style={{ marginTop: SPACING.lg }} />
+          <GradientButton
+            label="Try again"
+            onPress={loadQuestions}
+            style={{ marginTop: SPACING.lg }}
+          />
         </View>
       </ScreenWrapper>
     );
@@ -158,23 +198,39 @@ export default function AssessmentScreen() {
             style={UI_SHADOWS.soft}
             onPress={() => nav.goBack()}
           >
-            <MaterialCommunityIcons name="arrow-left" size={18} color={COLORS.textSecondary} />
+            <MaterialCommunityIcons
+              name="arrow-left"
+              size={18}
+              color={COLORS.textSecondary}
+            />
           </TouchableOpacity>
-          <Text className="text-[16px] text-textPrimary" style={{ fontFamily: FONTS.serif }}>
+          <Text
+            className="text-[16px] text-textPrimary"
+            style={{ fontFamily: FONTS.serif }}
+          >
             {symptom}
           </Text>
           <TouchableOpacity onPress={() => nav.goBack()}>
-            <Text className="text-[12px] tracking-[0.15px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
+            <Text
+              className="text-[12px] tracking-[0.15px] text-textMuted"
+              style={{ fontFamily: FONTS.sans }}
+            >
               Cancel
             </Text>
           </TouchableOpacity>
         </View>
 
         <View className="mb-2 flex-row justify-between">
-          <Text className="text-[10px] text-textMuted" style={{ fontFamily: FONTS.sans }}>
+          <Text
+            className="text-[10px] text-textMuted"
+            style={{ fontFamily: FONTS.sans }}
+          >
             Question {currentQ + 1} of {questions.length}
           </Text>
-          <Text className="text-[10px] text-textSecondary" style={{ fontFamily: FONTS.sansBold }}>
+          <Text
+            className="text-[10px] text-textSecondary"
+            style={{ fontFamily: FONTS.sansBold }}
+          >
             {Math.round(((currentQ + 1) / questions.length) * 100)}%
           </Text>
         </View>
@@ -182,7 +238,10 @@ export default function AssessmentScreen() {
 
         {q && (
           <>
-            <Text className="mb-2 text-[9px] uppercase tracking-[0.8px] text-brandStart" style={{ fontFamily: FONTS.sansBold }}>
+            <Text
+              className="mb-2 text-[9px] uppercase tracking-[0.8px] text-brandStart"
+              style={{ fontFamily: FONTS.sansBold }}
+            >
               {[
                 'Location',
                 'Duration',
@@ -191,7 +250,10 @@ export default function AssessmentScreen() {
                 'Context'
               ][currentQ] ?? `Question ${currentQ + 1}`}
             </Text>
-            <Text className="mb-5 text-[22px] leading-8 text-textPrimary" style={{ fontFamily: FONTS.serif }}>
+            <Text
+              className="mb-5 text-[22px] leading-8 text-textPrimary"
+              style={{ fontFamily: FONTS.serif }}
+            >
               {q.text}
             </Text>
 
@@ -217,7 +279,12 @@ export default function AssessmentScreen() {
                         backgroundColor: isSel ? COLORS.pinkBg : 'transparent'
                       }}
                     >
-                      {isSel && <View className="h-2 w-2 rounded-full" style={{ backgroundColor: COLORS.pink }} />}
+                      {isSel && (
+                        <View
+                          className="h-2 w-2 rounded-full"
+                          style={{ backgroundColor: COLORS.pink }}
+                        />
+                      )}
                     </View>
                     <Text
                       className="flex-1 text-[13px] leading-[19px]"
@@ -233,14 +300,21 @@ export default function AssessmentScreen() {
               })}
             </View>
 
-            <Text className="mb-2 text-[10px] uppercase tracking-[0.9px] text-textHint" style={{ fontFamily: FONTS.sansBold }}>
+            <Text
+              className="mb-2 text-[10px] uppercase tracking-[0.9px] text-textHint"
+              style={{ fontFamily: FONTS.sansBold }}
+            >
               Or describe in your own words
             </Text>
             <View
               className={`flex-row items-center gap-2 rounded-xl border border-borderSoft bg-card px-3 py-[12px]`}
               style={UI_SHADOWS.soft}
             >
-              <MaterialCommunityIcons name="pencil-outline" size={13} color={COLORS.textMuted} />
+              <MaterialCommunityIcons
+                name="pencil-outline"
+                size={13}
+                color={COLORS.textMuted}
+              />
               <TextInput
                 className="flex-1 text-[12px] text-textPrimary"
                 style={{ fontFamily: FONTS.sans }}
@@ -258,7 +332,12 @@ export default function AssessmentScreen() {
               disabled={!selectedOpt && !customAnswer.trim()}
               style={{ marginTop: SPACING.md }}
             />
-            {currentQ > 0 && <GhostButton label="← Back" onPress={() => setCurrentQ((i) => i - 1)} />}
+            {currentQ > 0 && (
+              <GhostButton
+                label="← Back"
+                onPress={() => setCurrentQ((i) => i - 1)}
+              />
+            )}
           </>
         )}
       </Animated.View>
