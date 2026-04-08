@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Switch, Alert, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Switch,
+  Alert,
+  ScrollView
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -7,10 +14,12 @@ import { COLORS, FONTS, LANGUAGES } from '../../constants/theme';
 import { UI_CLASSES, UI_SHADOWS } from '../../constants/ui';
 import { useApp } from '../../context/AppContext';
 import { auth, logOut, saveLanguage } from '../../services/authService';
+import { t } from '../../localization/i18n';
 
 export default function ProfileScreen() {
   const nav = useNavigation<any>();
   const { userProfile, setUserProfile, themeMode, toggleTheme } = useApp();
+  const language = userProfile.language ?? 'en';
 
   const [periodReminders, setPeriodReminders] = useState(true);
   const [weeklyNudge, setWeeklyNudge] = useState(true);
@@ -31,17 +40,21 @@ export default function ProfileScreen() {
   };
 
   const handleLogout = () => {
-    Alert.alert('Sign out', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Sign out',
-        style: 'destructive',
-        onPress: async () => {
-          await logOut();
-          nav.reset({ index: 0, routes: [{ name: 'Welcome' }] });
+    Alert.alert(
+      t(language, 'profile_sign_out_title'),
+      t(language, 'profile_sign_out_message'),
+      [
+        { text: t(language, 'profile_cancel'), style: 'cancel' },
+        {
+          text: t(language, 'profile_sign_out'),
+          style: 'destructive',
+          onPress: async () => {
+            await logOut();
+            nav.reset({ index: 0, routes: [{ name: 'Welcome' }] });
+          }
         }
-      }
-    ]);
+      ]
+    );
   };
 
   const selectedLang = userProfile.language ?? 'en';
@@ -61,36 +74,61 @@ export default function ProfileScreen() {
             ...UI_SHADOWS.strong
           }}
         >
-          <Text className="text-[22px] text-[#d5457a]" style={{ fontFamily: FONTS.serif, fontWeight: '600' }}>
+          <Text
+            className="text-[22px] text-[#d5457a]"
+            style={{ fontFamily: FONTS.serif, fontWeight: '600' }}
+          >
             {initials}
           </Text>
         </View>
-        <Text className="mb-1 text-[21px] text-textPrimary dark:text-slate-100" style={{ fontFamily: FONTS.serif, fontWeight: '600' }}>
+        <Text
+          className="mb-1 text-[21px] text-textPrimary dark:text-slate-100"
+          style={{ fontFamily: FONTS.serif, fontWeight: '600' }}
+        >
           {name}
         </Text>
-        <Text className="mb-[2px] text-[12px] text-textMuted dark:text-slate-300" style={{ fontFamily: FONTS.sans }}>
+        <Text
+          className="mb-[2px] text-[12px] text-textMuted dark:text-slate-300"
+          style={{ fontFamily: FONTS.sans }}
+        >
           {auth.currentUser?.email ?? ''}
         </Text>
         {userProfile.ageGroup && (
-          <Text className="text-[11px] text-textHint dark:text-slate-400" style={{ fontFamily: FONTS.sans }}>
-            {userProfile.ageGroup} yrs · {userProfile.city ?? 'India'}
+          <Text
+            className="text-[11px] text-textHint dark:text-slate-400"
+            style={{ fontFamily: FONTS.sans }}
+          >
+            {userProfile.ageGroup} yrs ·{' '}
+            {userProfile.city ?? t(language, 'profile_city_india')}
           </Text>
         )}
-        <View className="mt-2 rounded-full bg-white/82 dark:bg-slate-900/70 px-3 py-[6px]" style={UI_SHADOWS.soft}>
-          <Text className="text-[11px] text-textSecondary dark:text-slate-200" style={{ fontFamily: FONTS.sans }}>
-            Profile strength: {completionScore}/4
+        <View
+          className="mt-2 rounded-full bg-white/82 dark:bg-slate-900/70 px-3 py-[6px]"
+          style={UI_SHADOWS.soft}
+        >
+          <Text
+            className="text-[11px] text-textSecondary dark:text-slate-200"
+            style={{ fontFamily: FONTS.sans }}
+          >
+            {t(language, 'profile_profile_strength', {
+              score: completionScore
+            })}
           </Text>
         </View>
       </View>
 
-      <Text className="mb-2 mt-4 text-[9px] uppercase tracking-[1px] text-textHint dark:text-slate-400" style={{ fontFamily: FONTS.sansBold }}>
-        LANGUAGE
-      </Text>
-      <View
-        className={UI_CLASSES.profileBlock}
-        style={UI_SHADOWS.medium}
+      <Text
+        className="mb-2 mt-4 text-[9px] uppercase tracking-[1px] text-textHint dark:text-slate-400"
+        style={{ fontFamily: FONTS.sansBold }}
       >
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 4 }}>
+        {t(language, 'profile_section_language')}
+      </Text>
+      <View className={UI_CLASSES.profileBlock} style={UI_SHADOWS.medium}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ marginBottom: 4 }}
+        >
           <View className="flex-row gap-2 py-3">
             {LANGUAGES.map((lang) => {
               const isSel = selectedLang === lang.code;
@@ -121,29 +159,39 @@ export default function ProfileScreen() {
         </ScrollView>
       </View>
 
-      <Text className="mb-2 mt-4 text-[9px] uppercase tracking-[1px] text-textHint dark:text-slate-400" style={{ fontFamily: FONTS.sansBold }}>
-        MY PROFILE
-      </Text>
-      <View
-        className={UI_CLASSES.profileBlock}
-        style={UI_SHADOWS.medium}
+      <Text
+        className="mb-2 mt-4 text-[9px] uppercase tracking-[1px] text-textHint dark:text-slate-400"
+        style={{ fontFamily: FONTS.sansBold }}
       >
+        {t(language, 'profile_section_my_profile')}
+      </Text>
+      <View className={UI_CLASSES.profileBlock} style={UI_SHADOWS.medium}>
         {[
-          { label: 'Activity level', value: userProfile.activityLevel ?? '—' },
-          { label: 'Diet type', value: userProfile.dietType ?? '—' },
           {
-            label: 'Known conditions',
-            value: userProfile.conditions?.join(', ') || 'None'
+            label: t(language, 'profile_activity_level'),
+            value: userProfile.activityLevel ?? '—'
+          },
+          {
+            label: t(language, 'profile_diet_type'),
+            value: userProfile.dietType ?? '—'
+          },
+          {
+            label: t(language, 'profile_known_conditions'),
+            value:
+              userProfile.conditions?.join(', ') || t(language, 'profile_none')
           }
         ].map((row) => (
-          <View
-            key={row.label}
-            className="flex-row items-center gap-3 py-3"
-          >
-            <Text className="flex-1 text-[13px] text-textSecondary dark:text-slate-200" style={{ fontFamily: FONTS.sans }}>
+          <View key={row.label} className="flex-row items-center gap-3 py-3">
+            <Text
+              className="flex-1 text-[13px] text-textSecondary dark:text-slate-200"
+              style={{ fontFamily: FONTS.sans }}
+            >
               {row.label}
             </Text>
-            <Text className="text-[12px] text-textMuted dark:text-slate-300" style={{ fontFamily: FONTS.sans }}>
+            <Text
+              className="text-[12px] text-textMuted dark:text-slate-300"
+              style={{ fontFamily: FONTS.sans }}
+            >
               {row.value}
             </Text>
           </View>
@@ -152,48 +200,54 @@ export default function ProfileScreen() {
           className="flex-row items-center gap-3 py-3"
           onPress={() => nav.navigate('AboutYou1')}
         >
-          <Text className="flex-1 text-[13px]" style={{ color: COLORS.pink, fontFamily: FONTS.sans }}>
-            Edit profile →
+          <Text
+            className="flex-1 text-[13px]"
+            style={{ color: COLORS.pink, fontFamily: FONTS.sans }}
+          >
+            {t(language, 'profile_edit_profile')}
           </Text>
         </TouchableOpacity>
       </View>
 
-      <Text className="mb-2 mt-4 text-[9px] uppercase tracking-[1px] text-textHint dark:text-slate-400" style={{ fontFamily: FONTS.sansBold }}>
-        NOTIFICATIONS
-      </Text>
-      <View
-        className={UI_CLASSES.profileBlock}
-        style={UI_SHADOWS.medium}
+      <Text
+        className="mb-2 mt-4 text-[9px] uppercase tracking-[1px] text-textHint dark:text-slate-400"
+        style={{ fontFamily: FONTS.sansBold }}
       >
+        {t(language, 'profile_section_notifications')}
+      </Text>
+      <View className={UI_CLASSES.profileBlock} style={UI_SHADOWS.medium}>
         {[
           {
-            label: 'Period reminders',
-            sub: 'Cycle tracking alerts',
+            label: t(language, 'profile_period_reminders'),
+            sub: t(language, 'profile_period_reminders_sub'),
             val: periodReminders,
             set: setPeriodReminders
           },
           {
-            label: 'Weekly health nudge',
-            sub: 'Tips based on your profile',
+            label: t(language, 'profile_weekly_nudge'),
+            sub: t(language, 'profile_weekly_nudge_sub'),
             val: weeklyNudge,
             set: setWeeklyNudge
           },
           {
-            label: 'Share with doctor',
-            sub: 'Export data to your doctor',
+            label: t(language, 'profile_share_doctor'),
+            sub: t(language, 'profile_share_doctor_sub'),
             val: shareWithDoc,
             set: setShareWithDoc
           }
         ].map((item) => (
-          <View
-            key={item.label}
-            className="flex-row items-center gap-3 py-3"
-          >
+          <View key={item.label} className="flex-row items-center gap-3 py-3">
             <View style={{ flex: 1 }}>
-              <Text className="text-[13px] text-textSecondary dark:text-slate-200" style={{ fontFamily: FONTS.sans }}>
+              <Text
+                className="text-[13px] text-textSecondary dark:text-slate-200"
+                style={{ fontFamily: FONTS.sans }}
+              >
                 {item.label}
               </Text>
-              <Text className="mt-[2px] text-[10px] text-textMuted dark:text-slate-300" style={{ fontFamily: FONTS.sans }}>
+              <Text
+                className="mt-[2px] text-[10px] text-textMuted dark:text-slate-300"
+                style={{ fontFamily: FONTS.sans }}
+              >
                 {item.sub}
               </Text>
             </View>
@@ -207,20 +261,26 @@ export default function ProfileScreen() {
         ))}
       </View>
 
-      <Text className="mb-2 mt-4 text-[9px] uppercase tracking-[1px] text-textHint dark:text-slate-400" style={{ fontFamily: FONTS.sansBold }}>
-        APPEARANCE
-      </Text>
-      <View
-        className={UI_CLASSES.profileBlock}
-        style={UI_SHADOWS.medium}
+      <Text
+        className="mb-2 mt-4 text-[9px] uppercase tracking-[1px] text-textHint dark:text-slate-400"
+        style={{ fontFamily: FONTS.sansBold }}
       >
+        {t(language, 'profile_section_appearance')}
+      </Text>
+      <View className={UI_CLASSES.profileBlock} style={UI_SHADOWS.medium}>
         <View className="flex-row items-center gap-3 py-3">
           <View style={{ flex: 1 }}>
-            <Text className="text-[13px] text-textSecondary dark:text-slate-200" style={{ fontFamily: FONTS.sans }}>
-              Dark theme
+            <Text
+              className="text-[13px] text-textSecondary dark:text-slate-200"
+              style={{ fontFamily: FONTS.sans }}
+            >
+              {t(language, 'profile_dark_theme')}
             </Text>
-            <Text className="mt-[2px] text-[10px] text-textMuted dark:text-slate-300" style={{ fontFamily: FONTS.sans }}>
-              Switch to a night-friendly premium look
+            <Text
+              className="mt-[2px] text-[10px] text-textMuted dark:text-slate-300"
+              style={{ fontFamily: FONTS.sans }}
+            >
+              {t(language, 'profile_dark_theme_sub')}
             </Text>
           </View>
           <Switch
@@ -232,38 +292,56 @@ export default function ProfileScreen() {
         </View>
       </View>
 
-      <Text className="mb-2 mt-4 text-[9px] uppercase tracking-[1px] text-textHint dark:text-slate-400" style={{ fontFamily: FONTS.sansBold }}>
-        LEGAL
-      </Text>
-      <View
-        className={UI_CLASSES.profileBlock}
-        style={UI_SHADOWS.medium}
+      <Text
+        className="mb-2 mt-4 text-[9px] uppercase tracking-[1px] text-textHint dark:text-slate-400"
+        style={{ fontFamily: FONTS.sansBold }}
       >
-        {['Privacy policy', 'Terms of service', 'Data & permissions'].map((item) => (
+        {t(language, 'profile_section_legal')}
+      </Text>
+      <View className={UI_CLASSES.profileBlock} style={UI_SHADOWS.medium}>
+        {[
+          t(language, 'profile_privacy_policy'),
+          t(language, 'profile_terms'),
+          t(language, 'profile_data_permissions')
+        ].map((item) => (
           <TouchableOpacity
             key={item}
             className="flex-row items-center gap-3 py-3"
           >
-            <Text className="flex-1 text-[13px] text-textSecondary dark:text-slate-200" style={{ fontFamily: FONTS.sans }}>
+            <Text
+              className="flex-1 text-[13px] text-textSecondary dark:text-slate-200"
+              style={{ fontFamily: FONTS.sans }}
+            >
               {item}
             </Text>
-            <MaterialCommunityIcons name="chevron-right" size={16} color={COLORS.textMuted} />
+            <MaterialCommunityIcons
+              name="chevron-right"
+              size={16}
+              color={COLORS.textMuted}
+            />
           </TouchableOpacity>
         ))}
       </View>
 
-      <TouchableOpacity className="flex-row items-center justify-center gap-2 py-4" onPress={handleLogout}>
+      <TouchableOpacity
+        className="flex-row items-center justify-center gap-2 py-4"
+        onPress={handleLogout}
+      >
         <MaterialCommunityIcons name="logout" size={16} color={COLORS.red} />
-        <Text className="text-[14px]" style={{ color: COLORS.red, fontFamily: FONTS.sansBold }}>
-          Sign out
+        <Text
+          className="text-[14px]"
+          style={{ color: COLORS.red, fontFamily: FONTS.sansBold }}
+        >
+          {t(language, 'profile_sign_out')}
         </Text>
       </TouchableOpacity>
 
-      <Text className="pb-4 text-center text-[10px] text-textHint dark:text-slate-400" style={{ fontFamily: FONTS.sans }}>
-        Nirogya v1.0 · Made with care for Indian women
+      <Text
+        className="pb-4 text-center text-[10px] text-textHint dark:text-slate-400"
+        style={{ fontFamily: FONTS.sans }}
+      >
+        {t(language, 'profile_version_note')}
       </Text>
     </ScreenWrapper>
   );
 }
-
-

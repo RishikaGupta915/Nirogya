@@ -17,27 +17,36 @@ import {
 } from '../../services/assessmentService';
 import { auth } from '../../services/authService';
 import type { DiagnosisResult } from '../../services/aiService';
+import { useApp } from '../../context/AppContext';
+import { t } from '../../localization/i18n';
 
-function timeAgo(ts: any): string {
+function timeAgo(ts: any, language: string): string {
   if (!ts) return '';
   const date = ts.toDate ? ts.toDate() : new Date(ts);
   const diff = Date.now() - date.getTime();
   const days = Math.floor(diff / 86400000);
-  if (days === 0) return 'Today';
-  if (days === 1) return 'Yesterday';
-  if (days < 7) return `${days}d ago`;
-  if (days < 30) return `${Math.floor(days / 7)}w ago`;
-  return `${Math.floor(days / 30)}mo ago`;
+  if (days === 0) return t(language, 'history_today');
+  if (days === 1) return t(language, 'history_yesterday');
+  if (days < 7) return t(language, 'history_days_ago', { count: days });
+  if (days < 30) {
+    return t(language, 'history_weeks_ago', { count: Math.floor(days / 7) });
+  }
+  return t(language, 'history_months_ago', { count: Math.floor(days / 30) });
 }
 
-function extractDiagnosisPayload(item: Assessment): DiagnosisResult & { fairnessScore?: number } {
+function extractDiagnosisPayload(
+  item: Assessment,
+  language: string
+): DiagnosisResult & { fairnessScore?: number } {
   const safeRiskLevel: DiagnosisResult['riskLevel'] =
-    item.riskLevel === 'high' || item.riskLevel === 'medium' || item.riskLevel === 'low'
+    item.riskLevel === 'high' ||
+    item.riskLevel === 'medium' ||
+    item.riskLevel === 'low'
       ? item.riskLevel
       : 'low';
   const fallback: DiagnosisResult & { fairnessScore?: number } = {
-    diagnosis: item.diagnosis || 'Assessment summary',
-    description: 'Your saved symptom assessment summary.',
+    diagnosis: item.diagnosis || t(language, 'history_assessment_summary'),
+    description: t(language, 'history_assessment_desc'),
     riskScore:
       typeof item.riskScore === 'number' && Number.isFinite(item.riskScore)
         ? item.riskScore
@@ -46,9 +55,12 @@ function extractDiagnosisPayload(item: Assessment): DiagnosisResult & { fairness
     nextSteps:
       Array.isArray(item.nextSteps) && item.nextSteps.length > 0
         ? item.nextSteps
-        : ['Track symptoms and consult a doctor if they worsen.'],
+        : [t(language, 'history_track_fallback')],
     seeDoctor: safeRiskLevel === 'high',
-    urgency: safeRiskLevel === 'high' ? 'As soon as possible' : 'Within a few days'
+    urgency:
+      safeRiskLevel === 'high'
+        ? t(language, 'history_urgency_asap')
+        : t(language, 'history_urgency_days')
   };
 
   if (!item.rawAiText) return fallback;
@@ -88,10 +100,14 @@ function extractDiagnosisPayload(item: Assessment): DiagnosisResult & { fairness
       riskLevel,
       nextSteps:
         Array.isArray(base.nextSteps) && base.nextSteps.length > 0
-          ? base.nextSteps.filter((step: unknown): step is string => typeof step === 'string')
+          ? base.nextSteps.filter(
+              (step: unknown): step is string => typeof step === 'string'
+            )
           : fallback.nextSteps,
       seeDoctor:
-        typeof base.seeDoctor === 'boolean' ? base.seeDoctor : fallback.seeDoctor,
+        typeof base.seeDoctor === 'boolean'
+          ? base.seeDoctor
+          : fallback.seeDoctor,
       urgency:
         typeof base.urgency === 'string' && base.urgency.trim()
           ? base.urgency
@@ -106,6 +122,8 @@ function extractDiagnosisPayload(item: Assessment): DiagnosisResult & { fairness
 
 export default function HistoryScreen() {
   const nav = useNavigation<any>();
+  const { userProfile } = useApp();
+  const language = userProfile.language ?? 'en';
   const uid = auth.currentUser?.uid;
   const [assessments, setAssessments] = useState<Assessment[]>([]);
   const [loading, setLoading] = useState(false);
@@ -134,7 +152,9 @@ export default function HistoryScreen() {
   );
 
   const total = assessments.length;
-  const needsAttn = assessments.filter((a: Assessment) => a.riskLevel === 'high').length;
+  const needsAttn = assessments.filter(
+    (a: Assessment) => a.riskLevel === 'high'
+  ).length;
 
   const renderItem = ({ item }: { item: Assessment }) => (
     <TouchableOpacity
@@ -142,7 +162,7 @@ export default function HistoryScreen() {
       style={UI_SHADOWS.soft}
       onPress={() =>
         nav.navigate('Results', {
-          diagnosis: extractDiagnosisPayload(item),
+          diagnosis: extractDiagnosisPayload(item, language),
           symptom: item.symptom
         })
       }
@@ -171,11 +191,11 @@ export default function HistoryScreen() {
           className="text-[10px] text-textMuted dark:text-slate-300"
           style={{ fontFamily: FONTS.sans }}
         >
-          {timeAgo(item.createdAt)}
+          {timeAgo(item.createdAt, language)}
         </Text>
-       <Text
-         className="text-[11px]"
-         style={{
+        <Text
+          className="text-[11px]"
+          style={{
             color: RISK_COLORS[item.riskLevel ?? 'low'],
             fontFamily: FONTS.sansBold
           }}
@@ -192,15 +212,19 @@ export default function HistoryScreen() {
         <View>
           <Text
             className="text-[29px] text-textPrimary dark:text-slate-100"
-            style={{ fontFamily: FONTS.serif, fontWeight: '600', letterSpacing: -0.4 }}
+            style={{
+              fontFamily: FONTS.serif,
+              fontWeight: '600',
+              letterSpacing: -0.4
+            }}
           >
-            History
+            {t(language, 'history_title')}
           </Text>
           <Text
             className="mt-[2px] text-[12px] text-textMuted dark:text-slate-300"
             style={{ fontFamily: FONTS.sans }}
           >
-            Your past assessments
+            {t(language, 'history_subtitle')}
           </Text>
         </View>
       </View>
@@ -224,7 +248,7 @@ export default function HistoryScreen() {
             className="text-[10px] text-textMuted dark:text-slate-300"
             style={{ fontFamily: FONTS.sans }}
           >
-            checks done
+            {t(language, 'history_checks_done')}
           </Text>
         </View>
         <View
@@ -245,7 +269,7 @@ export default function HistoryScreen() {
             className="text-[10px] text-textMuted dark:text-slate-300"
             style={{ fontFamily: FONTS.sans }}
           >
-            manageable
+            {t(language, 'history_manageable')}
           </Text>
         </View>
         <View
@@ -266,12 +290,15 @@ export default function HistoryScreen() {
             className="text-[10px] text-textMuted dark:text-slate-300"
             style={{ fontFamily: FONTS.sans }}
           >
-            needs care
+            {t(language, 'history_needs_care')}
           </Text>
         </View>
       </View>
 
-      <View className="mx-4 mb-3 flex-row items-center gap-2 rounded-xl2 bg-white/78 dark:bg-slate-900/66 px-3 py-2" style={UI_SHADOWS.soft}>
+      <View
+        className="mx-4 mb-3 flex-row items-center gap-2 rounded-xl2 bg-white/78 dark:bg-slate-900/66 px-3 py-2"
+        style={UI_SHADOWS.soft}
+      >
         <MaterialCommunityIcons
           name={needsAttn > 0 ? 'alert-circle-outline' : 'check-circle-outline'}
           size={16}
@@ -282,8 +309,8 @@ export default function HistoryScreen() {
           style={{ fontFamily: FONTS.sans }}
         >
           {needsAttn > 0
-            ? `${needsAttn} recent checks may need attention.`
-            : 'Great consistency. Your recent checks look manageable.'}
+            ? t(language, 'history_attention_msg', { count: needsAttn })
+            : t(language, 'history_consistency_msg')}
         </Text>
       </View>
 
@@ -303,19 +330,21 @@ export default function HistoryScreen() {
             className="text-[18px] text-textSecondary dark:text-slate-200"
             style={{ fontFamily: FONTS.serif }}
           >
-            No assessments yet
+            {t(language, 'history_empty_title')}
           </Text>
           <Text
             className="text-center text-[12px] text-textMuted dark:text-slate-300"
             style={{ fontFamily: FONTS.sans }}
           >
-            Start a symptom check from the home screen
+            {t(language, 'history_empty_sub')}
           </Text>
         </View>
       ) : (
         <FlatList
           data={assessments}
-          keyExtractor={(i, index) => i.id ?? `${i.createdAt ?? ''}-${i.symptom}-${index}`}
+          keyExtractor={(i, index) =>
+            i.id ?? `${i.createdAt ?? ''}-${i.symptom}-${index}`
+          }
           renderItem={renderItem}
           contentContainerStyle={{
             paddingHorizontal: SPACING.lg,
@@ -328,6 +357,3 @@ export default function HistoryScreen() {
     </ScreenWrapper>
   );
 }
-
-
-

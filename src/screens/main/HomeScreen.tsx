@@ -25,12 +25,12 @@ import {
   getRecentAssessments
 } from '../../services/assessmentService';
 import { useEntranceAnimation } from '../../hooks/useEntranceAnimation';
-
-const WELLNESS_SPARKS = ['Hydration', 'Sleep quality', 'Stress check'];
+import { t } from '../../localization/i18n';
 
 export default function HomeScreen() {
   const nav = useNavigation<any>();
   const { userProfile } = useApp();
+  const language = userProfile.language ?? 'en';
   const [search, setSearch] = useState('');
   const [recent, setRecent] = useState<Assessment[]>([]);
   const uid = auth.currentUser?.uid;
@@ -64,6 +64,17 @@ export default function HomeScreen() {
 
   const hour = new Date().getHours();
   const timeOfDay = hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening';
+  const greetingByTime =
+    timeOfDay === 'morning'
+      ? t(language, 'home_good_morning')
+      : timeOfDay === 'afternoon'
+        ? t(language, 'home_good_afternoon')
+        : t(language, 'home_good_evening');
+  const wellnessSparks = [
+    t(language, 'home_wellness_hydration'),
+    t(language, 'home_wellness_sleep'),
+    t(language, 'home_wellness_stress')
+  ];
 
   const handleSymptomSearch = () => {
     if (search.trim()) {
@@ -95,7 +106,8 @@ export default function HomeScreen() {
               className="mt-[2px] text-[12px] text-textSecondary dark:text-slate-200"
               style={{ fontFamily: FONTS.sans }}
             >
-              Good {timeOfDay}, {userProfile.name?.split(' ')[0] ?? 'there'}
+              {greetingByTime},{' '}
+              {userProfile.name?.split(' ')[0] ?? t(language, 'home_there')}
             </Text>
           </View>
           <TouchableOpacity
@@ -117,10 +129,11 @@ export default function HomeScreen() {
         </View>
 
         <View className="mb-4 flex-row flex-wrap gap-2">
-          {WELLNESS_SPARKS.map((spark) => (
+          {wellnessSparks.map((spark) => (
             <View
               key={spark}
-              className="rounded-full bg-white/80 dark:bg-slate-900/68 px-[13px] py-[8px]" style={UI_SHADOWS.soft}
+              className="rounded-full bg-white/80 dark:bg-slate-900/68 px-[13px] py-[8px]"
+              style={UI_SHADOWS.soft}
             >
               <Text
                 className="text-[11px] tracking-[0.1px] text-textSecondary dark:text-slate-200"
@@ -146,20 +159,24 @@ export default function HomeScreen() {
                 className="text-[10px] uppercase tracking-[1.2px] text-textHint dark:text-slate-400"
                 style={{ fontFamily: FONTS.sansBold }}
               >
-                Last check
+                {t(language, 'home_last_check')}
               </Text>
               <View
                 className="h-2 w-2 rounded-full"
                 style={{
-                  backgroundColor: RISK_COLORS[recent[0].riskLevel] ?? COLORS.pink
+                  backgroundColor:
+                    RISK_COLORS[recent[0].riskLevel] ?? COLORS.pink
                 }}
               />
             </View>
             <Text
-              className="mb-[4px] text-[18px] leading-[23px] text-textPrimary dark:text-slate-100" style={{ fontFamily: FONTS.serif, fontWeight: '600' }}>
+              className="mb-[4px] text-[18px] leading-[23px] text-textPrimary dark:text-slate-100"
+              style={{ fontFamily: FONTS.serif, fontWeight: '600' }}
+            >
               {recent[0].symptom}
             </Text>
-            <Text className="mb-[6px] text-[12px] leading-[18px] text-textSecondary dark:text-slate-200"
+            <Text
+              className="mb-[6px] text-[12px] leading-[18px] text-textSecondary dark:text-slate-200"
               style={{ fontFamily: FONTS.sans }}
             >
               {recent[0].diagnosis}
@@ -168,7 +185,7 @@ export default function HomeScreen() {
               className="text-[10px] text-textMuted dark:text-slate-300"
               style={{ fontFamily: FONTS.sans }}
             >
-              Tap to view history →
+              {t(language, 'home_tap_history')}
             </Text>
           </TouchableOpacity>
         )}
@@ -179,7 +196,7 @@ export default function HomeScreen() {
           className={UI_CLASSES.sectionEyebrow}
           style={{ fontFamily: FONTS.sansBold }}
         >
-          TYPE YOUR SYMPTOM
+          {t(language, 'home_type_symptom')}
         </Text>
         <View
           className="mb-5 flex-row items-center gap-2 rounded-xl2 bg-card dark:bg-slate-900/72 px-3 py-[11px]"
@@ -193,7 +210,7 @@ export default function HomeScreen() {
           <TextInput
             className="flex-1 text-[13px] text-textPrimary dark:text-slate-100"
             style={{ fontFamily: FONTS.sans }}
-            placeholder="e.g. knee pain, hair loss, nausea…"
+            placeholder={t(language, 'home_search_placeholder')}
             placeholderTextColor={COLORS.textHint}
             value={search}
             onChangeText={setSearch}
@@ -206,7 +223,7 @@ export default function HomeScreen() {
                 className="text-[12px] text-[#d5457a]"
                 style={{ fontFamily: FONTS.sansBold }}
               >
-                Go →
+                {t(language, 'home_go')}
               </Text>
             </TouchableOpacity>
           )}
@@ -216,7 +233,7 @@ export default function HomeScreen() {
           className={UI_CLASSES.sectionEyebrow}
           style={{ fontFamily: FONTS.sansBold }}
         >
-          OR CHOOSE A CATEGORY
+          {t(language, 'home_choose_category')}
         </Text>
         <View className="flex-row flex-wrap gap-[10px]">
           {SYMPTOM_CATEGORIES.map((cat) => {
@@ -264,6 +281,3 @@ export default function HomeScreen() {
     </ScreenWrapper>
   );
 }
-
-
-

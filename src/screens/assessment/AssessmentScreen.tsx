@@ -23,6 +23,7 @@ import {
 } from '../../services/aiService';
 import { saveAssessment } from '../../services/assessmentService';
 import { auth } from '../../services/authService';
+import { t } from '../../localization/i18n';
 
 interface Question {
   id: string;
@@ -34,6 +35,7 @@ export default function AssessmentScreen() {
   const nav = useNavigation<any>();
   const route = useRoute<any>();
   const { userProfile } = useApp();
+  const language = userProfile.language ?? 'en';
 
   const symptom: string = route.params?.symptom ?? '';
 
@@ -50,20 +52,14 @@ export default function AssessmentScreen() {
     setLoading(true);
     setError('');
     try {
-      const result = await generateQuestions(
-        symptom,
-        userProfile,
-        userProfile.language ?? 'en'
-      );
+      const result = await generateQuestions(symptom, userProfile, language);
       setQuestions(result.questions);
     } catch {
-      setError(
-        'Could not load questions. Please check your internet connection.'
-      );
+      setError(t(language, 'assessment_error_load'));
     } finally {
       setLoading(false);
     }
-  }, [symptom, userProfile]);
+  }, [symptom, userProfile, language]);
 
   useEffect(() => {
     loadQuestions();
@@ -94,7 +90,6 @@ export default function AssessmentScreen() {
 
     setSubmitting(true);
     try {
-      const language = userProfile.language ?? 'en';
       let diagnosis: any;
       let pipelinePayload: any = null;
 
@@ -136,7 +131,10 @@ export default function AssessmentScreen() {
 
       nav.navigate('Results', { diagnosis, symptom });
     } catch {
-      Alert.alert('Error', 'Could not generate diagnosis. Please try again.');
+      Alert.alert(
+        t(language, 'assessment_alert_error_title'),
+        t(language, 'assessment_alert_error_body')
+      );
     } finally {
       setSubmitting(false);
     }
@@ -151,13 +149,13 @@ export default function AssessmentScreen() {
             className="text-center text-[18px] text-textPrimary dark:text-slate-100"
             style={{ fontFamily: FONTS.serif }}
           >
-            Preparing your questions…
+            {t(language, 'assessment_loading_title')}
           </Text>
           <Text
             className="text-center text-[12px] text-textMuted dark:text-slate-300"
             style={{ fontFamily: FONTS.sans }}
           >
-            Personalising based on your profile
+            {t(language, 'assessment_loading_sub')}
           </Text>
         </View>
       </ScreenWrapper>
@@ -180,7 +178,7 @@ export default function AssessmentScreen() {
             {error}
           </Text>
           <GradientButton
-            label="Try again"
+            label={t(language, 'assessment_try_again')}
             onPress={loadQuestions}
             style={{ marginTop: SPACING.lg }}
           />
@@ -215,7 +213,7 @@ export default function AssessmentScreen() {
               className="text-[12px] tracking-[0.15px] text-textMuted dark:text-slate-300"
               style={{ fontFamily: FONTS.sans }}
             >
-              Cancel
+              {t(language, 'assessment_cancel')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -225,7 +223,10 @@ export default function AssessmentScreen() {
             className="text-[10px] text-textMuted dark:text-slate-300"
             style={{ fontFamily: FONTS.sans }}
           >
-            Question {currentQ + 1} of {questions.length}
+            {t(language, 'assessment_question_of', {
+              current: currentQ + 1,
+              total: questions.length
+            })}
           </Text>
           <Text
             className="text-[10px] text-textSecondary dark:text-slate-200"
@@ -304,7 +305,7 @@ export default function AssessmentScreen() {
               className="mb-2 text-[10px] uppercase tracking-[0.9px] text-textHint dark:text-slate-400"
               style={{ fontFamily: FONTS.sansBold }}
             >
-              Or describe in your own words
+              {t(language, 'assessment_custom_label')}
             </Text>
             <View
               className={`flex-row items-center gap-2 rounded-xl border border-borderSoft bg-card dark:bg-slate-900/72 px-3 py-[12px]`}
@@ -318,7 +319,7 @@ export default function AssessmentScreen() {
               <TextInput
                 className="flex-1 text-[12px] text-textPrimary dark:text-slate-100"
                 style={{ fontFamily: FONTS.sans }}
-                placeholder="Type your own description…"
+                placeholder={t(language, 'assessment_custom_placeholder')}
                 placeholderTextColor={COLORS.textHint}
                 value={customAnswer}
                 onChangeText={handleCustomType}
@@ -326,7 +327,11 @@ export default function AssessmentScreen() {
             </View>
 
             <GradientButton
-              label={isLastQ ? 'See my results →' : 'Next →'}
+              label={
+                isLastQ
+                  ? t(language, 'assessment_see_results')
+                  : t(language, 'assessment_next')
+              }
               onPress={handleNext}
               loading={submitting}
               disabled={!selectedOpt && !customAnswer.trim()}
@@ -334,7 +339,7 @@ export default function AssessmentScreen() {
             />
             {currentQ > 0 && (
               <GhostButton
-                label="← Back"
+                label={t(language, 'assessment_back')}
                 onPress={() => setCurrentQ((i) => i - 1)}
               />
             )}
@@ -344,6 +349,3 @@ export default function AssessmentScreen() {
     </ScreenWrapper>
   );
 }
-
-
-

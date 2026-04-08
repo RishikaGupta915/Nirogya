@@ -7,6 +7,8 @@ import { COLORS, FONTS } from '../../constants/theme';
 import { UI_CLASSES, UI_SHADOWS } from '../../constants/ui';
 import { useEntranceAnimation } from '../../hooks/useEntranceAnimation';
 import type { DiagnosisResult } from '../../services/aiService';
+import { useApp } from '../../context/AppContext';
+import { t } from '../../localization/i18n';
 
 const STEP_COLORS = [COLORS.pink, COLORS.purple, COLORS.indigo, COLORS.blue];
 const STEP_BGS = [
@@ -65,6 +67,8 @@ function normalizeDiagnosis(input?: RouteDiagnosis) {
 export default function ResultsScreen() {
   const nav = useNavigation<any>();
   const route = useRoute<any>();
+  const { userProfile } = useApp();
+  const language = userProfile.language ?? 'en';
   const heroAnim = useEntranceAnimation(0, 10);
   const bodyAnim = useEntranceAnimation(110, 12);
 
@@ -76,7 +80,7 @@ export default function ResultsScreen() {
     return (
       <ScreenWrapper>
         <Text className="text-textPrimary dark:text-slate-100">
-          No results found.
+          {t(language, 'results_no_results')}
         </Text>
       </ScreenWrapper>
     );
@@ -113,7 +117,7 @@ export default function ResultsScreen() {
             className="text-[19px] text-textPrimary dark:text-slate-100"
             style={{ fontFamily: FONTS.serif }}
           >
-            Your results
+            {t(language, 'results_title')}
           </Text>
           <View className="w-[34px]" />
         </View>
@@ -152,7 +156,7 @@ export default function ResultsScreen() {
               className="text-[11px] text-textMuted dark:text-slate-300"
               style={{ fontFamily: FONTS.sans }}
             >
-              Likelihood score
+              {t(language, 'results_likelihood_score')}
             </Text>
             <Text
               className="text-[13px] text-textPrimary dark:text-slate-100"
@@ -173,7 +177,9 @@ export default function ResultsScreen() {
                 className="text-[11px] text-textSecondary dark:text-slate-200"
                 style={{ fontFamily: FONTS.sansBold }}
               >
-                Fairness score: {diagnosis.fairnessScore.toFixed(2)}
+                {t(language, 'results_fairness_score', {
+                  score: diagnosis.fairnessScore.toFixed(2)
+                })}
               </Text>
             </View>
           )}
@@ -193,7 +199,7 @@ export default function ResultsScreen() {
               className="text-[12px]"
               style={{ color: COLORS.amber, fontFamily: FONTS.sans }}
             >
-              See a doctor:{' '}
+              {t(language, 'results_see_doctor')}{' '}
               <Text style={{ fontFamily: FONTS.sansBold }}>
                 {diagnosis.urgency}
               </Text>
@@ -209,7 +215,7 @@ export default function ResultsScreen() {
             className="mb-3 text-[12px] text-textSecondary dark:text-slate-200"
             style={{ fontFamily: FONTS.sansBold }}
           >
-            What to do next
+            {t(language, 'results_what_to_do_next')}
           </Text>
           {diagnosis.nextSteps.map((step, i) => (
             <View key={i} className="mb-3 flex-row items-start gap-3">
@@ -244,17 +250,16 @@ export default function ResultsScreen() {
             className="flex-1 text-[11px] leading-[17px] text-textHint dark:text-slate-400"
             style={{ fontFamily: FONTS.sans }}
           >
-            This is not a medical diagnosis. Always consult a qualified doctor
-            before starting treatment.
+            {t(language, 'results_disclaimer')}
           </Text>
         </View>
 
         <GradientButton
-          label="Check another symptom"
+          label={t(language, 'results_check_another')}
           onPress={() => goToTab('Home')}
         />
         <GhostButton
-          label="View all history"
+          label={t(language, 'results_view_history')}
           onPress={() => goToTab('History')}
         />
       </Animated.View>

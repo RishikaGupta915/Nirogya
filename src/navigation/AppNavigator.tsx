@@ -9,6 +9,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS, FONTS } from '../constants/theme';
 import { UI_SHADOWS } from '../constants/ui';
 import { useApp } from '../context/AppContext';
+import { t } from '../localization/i18n';
 
 // Onboarding
 import WelcomeScreen from '../screens/onboarding/WelcomeScreen';
@@ -37,21 +38,24 @@ const Tab = createBottomTabNavigator();
 
 // ── Bottom Tab Navigator ───────────────────────────────────────
 function MainTabs() {
-  const { themeMode } = useApp();
+  const { themeMode, userProfile } = useApp();
   const isDark = themeMode === 'dark';
+  const language = userProfile.language ?? 'en';
 
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: isDark ? 'rgba(15,23,42,0.92)' : 'rgba(255,255,255,0.94)',
+          backgroundColor: isDark
+            ? 'rgba(15,23,42,0.92)'
+            : 'rgba(255,255,255,0.94)',
           borderTopWidth: 0,
           borderTopColor: 'transparent',
           paddingBottom: 16,
           paddingTop: 10,
           height: 68,
-          ...UI_SHADOWS.tabBar,
+          ...UI_SHADOWS.tabBar
         },
         tabBarActiveTintColor: COLORS.gradStart,
         tabBarInactiveTintColor: COLORS.textHint,
@@ -79,17 +83,17 @@ function MainTabs() {
       <Tab.Screen
         name="Home"
         component={HomeScreen}
-        options={{ tabBarLabel: 'Home' }}
+        options={{ tabBarLabel: t(language, 'tabs_home') }}
       />
       <Tab.Screen
         name="History"
         component={HistoryScreen}
-        options={{ tabBarLabel: 'History' }}
+        options={{ tabBarLabel: t(language, 'tabs_history') }}
       />
       <Tab.Screen
         name="Profile"
         component={ProfileScreen}
-        options={{ tabBarLabel: 'Profile' }}
+        options={{ tabBarLabel: t(language, 'tabs_profile') }}
       />
     </Tab.Navigator>
   );
@@ -97,18 +101,29 @@ function MainTabs() {
 
 // ── Root Stack Navigator ───────────────────────────────────────
 export default function AppNavigator() {
-  const { user, loading, themeMode } = useApp();
+  const { user, loading, themeMode, userProfile } = useApp();
   const isDark = themeMode === 'dark';
+  const language = userProfile.language ?? 'en';
 
   if (loading) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.bg }}>
+      <View
+        style={{
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: COLORS.bg
+        }}
+      >
         <ActivityIndicator size="large" color={COLORS.gradStart} />
         <Text
           className="mt-3 text-[13px]"
-          style={{ fontFamily: FONTS.sans, color: isDark ? COLORS.textSecondary : COLORS.textSecondary }}
+          style={{
+            fontFamily: FONTS.sans,
+            color: isDark ? COLORS.textSecondary : COLORS.textSecondary
+          }}
         >
-          Preparing your app...
+          {t(language, 'app_preparing')}
         </Text>
       </View>
     );
