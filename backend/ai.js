@@ -9,32 +9,11 @@ if (!GEMINI_API_KEY) {
 
 const genAI = GEMINI_API_KEY ? new GoogleGenerativeAI(GEMINI_API_KEY) : null;
 
-const NIM_BASE_URL =
-  process.env.EXPO_PUBLIC_NVIDIA_BASE_URL ||
-  process.env.NIM_BASE_URL ||
-  'https://integrate.api.nvidia.com/v1';
-
-const NIM_API_KEY =
-  process.env.EXPO_PUBLIC_NVIDIA_API_KEY || process.env.NVIDIA_API_KEY || null;
-
-const NIM_TRANSLATE_MODEL =
-  process.env.EXPO_PUBLIC_NVIDIA_TRANSLATE_MODEL ||
-  'nvidia/riva-translate-1_6b';
-
-const NIM_QUESTION_MODELS = parseModelList(
-  process.env.EXPO_PUBLIC_NVIDIA_FALLBACK_MODELS_QUESTIONS,
-  ['qwen/qwen3.5-397b-a17b', 'google/gemma-3-27b-it']
-);
-
-const NIM_DIAGNOSIS_MODELS = parseModelList(
-  process.env.EXPO_PUBLIC_NVIDIA_FALLBACK_MODELS_DIAGNOSIS,
-  ['qwen/qwen3.5-397b-a17b', 'google/gemma-3-27b-it']
-);
-
-const NIM_CONVERSATION_MODELS = parseModelList(
-  process.env.EXPO_PUBLIC_NVIDIA_FALLBACK_MODELS_CONVERSATION,
-  ['qwen/qwen3.5-397b-a17b', 'google/gemma-3-27b-it']
-);
+// NIM / Gemma fallbacks disabled by default
+const NIM_API_KEY = null;
+const NIM_QUESTION_MODELS = [];
+const NIM_DIAGNOSIS_MODELS = [];
+const NIM_CONVERSATION_MODELS = [];
 
 const OPENROUTER_BASE_URL =
   process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1';
@@ -74,10 +53,24 @@ function parseModelList(raw, fallback) {
   if (!raw || typeof raw !== 'string') return fallback;
   const parsed = raw
     .split(',')
-    .map((m) => m.trim())
+    .map((m) => m.trim().replace(/^models\//i, ''))
     .filter(Boolean);
   return parsed.length ? parsed : fallback;
 }
+
+const GEMINI_MODELS = parseModelList(
+  process.env.EXPO_PUBLIC_GEMINI_MODEL_FALLBACKS ||
+    process.env.GEMINI_MODEL_FALLBACKS ||
+    process.env.EXPO_PUBLIC_GEMINI_MODEL ||
+    process.env.GEMINI_MODEL,
+  [
+    'gemini-flash-latest',
+    'gemini-flash-lite-latest',
+    'gemini-2.5-flash-lite',
+    'gemini-2.0-flash-lite-001',
+    'gemma-3-4b-it'
+  ]
+);
 
 function stripJson(text = '') {
   return text
@@ -107,12 +100,26 @@ function clamp(value, min, max) {
 
 async function callGemini(prompt) {
   if (!genAI) throw new Error('Gemini client not configured');
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-  const result = await model.generateContent(prompt);
-  const response = await result.response;
-  const text = await response.text();
-  if (!text?.trim()) throw new Error('Gemini returned empty response');
-  return text;
+
+  let lastErr = null;
+  for (const modelName of GEMINI_MODELS) {
+    try {
+      const model = genAI.getGenerativeModel({ model: modelName });
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = await response.text();
+      if (!text?.trim()) {
+        throw new Error(`Gemini model ${modelName} returned empty response`);
+      }
+      return { text, modelName };
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+
+  throw new Error(
+    `Gemini failed for all configured models (${GEMINI_MODELS.join(', ')}). Last error: ${String(lastErr)}`
+  );
 }
 
 async function callNimChat(model, messages, opts = {}) {
@@ -238,24 +245,11 @@ function mapWhisperLanguageCode(language = 'en') {
 
 async function generateTextWithFallback(task, prompt, nimModels) {
   try {
-    const text = await callGemini(prompt);
-    return { text, source: 'gemini-1.5-flash' };
+    const generated = await callGemini(prompt);
+    return { text: generated.text, source: generated.modelName };
   } catch (geminiErr) {
-    let lastErr = geminiErr;
-    for (const model of nimModels) {
-      try {
-        const text = await callNimChat(model, [
-          { role: 'user', content: prompt }
-        ]);
-        return { text, source: model };
-      } catch (nimErr) {
-        lastErr = nimErr;
-      }
-    }
-
-    throw new Error(
-      `${task} generation failed on primary + fallback models: ${String(lastErr)}`
-    );
+    // No NIM fallback: propagate so caller can use rule-based defaults
+    throw geminiErr;
   }
 }
 
@@ -459,48 +453,8 @@ async function translateMany(texts, targetLanguage) {
   ) {
     return texts;
   }
-  if (!NIM_API_KEY) return texts;
-
-  const nonEmpty = texts.map((text) =>
-    typeof text === 'string' ? text.trim() : ''
-  );
-  if (nonEmpty.every((text) => !text)) return texts;
-
-  const prompt = `Target language: ${normalizeTargetLanguage(targetLanguage)}\nTranslate each text in the JSON array and preserve order exactly.\nKeep numbers, units, medicine names, and condition names intact.\nJSON array:\n${JSON.stringify(nonEmpty)}`;
-
-  try {
-    const content = await callNimChat(
-      NIM_TRANSLATE_MODEL,
-      [
-        {
-          role: 'system',
-          content:
-            'You are a medical translator. Return ONLY valid JSON in this exact format: {"translations": ["..."]}. No markdown.'
-        },
-        { role: 'user', content: prompt }
-      ],
-      { temperature: 0.2, maxTokens: 2048 }
-    );
-
-    const jsonString = extractJsonObject(content);
-    if (!jsonString) return texts;
-
-    const parsed = JSON.parse(jsonString);
-    if (!Array.isArray(parsed?.translations)) return texts;
-    if (parsed.translations.length !== texts.length) return texts;
-
-    return parsed.translations.map((translated, idx) =>
-      typeof translated === 'string' && translated.trim()
-        ? translated
-        : texts[idx]
-    );
-  } catch (err) {
-    console.warn(
-      '[AI] Translation fallback to original text:',
-      err?.message || err
-    );
-    return texts;
-  }
+  // Translation disabled (no NIM); return original
+  return texts;
 }
 
 async function translateQuestionSet(questionSet, targetLanguage) {
@@ -896,53 +850,7 @@ Reply with practical next steps in 2-6 short lines.
 }
 
 async function transcribeAudio({ audioBase64, language = 'en', mimeType }) {
-  if (!audioBase64 || typeof audioBase64 !== 'string') {
-    throw new Error('audioBase64 is required');
-  }
-
-  const langCode = mapWhisperLanguageCode(language);
-
-  if (!NIM_API_KEY) {
-    throw new Error('NVIDIA API key missing for transcription');
-  }
-
-  const cleanBase64 = audioBase64.includes(',')
-    ? audioBase64.split(',').pop()
-    : audioBase64;
-
-  const buffer = Buffer.from(cleanBase64, 'base64');
-  const blob = new Blob([buffer], {
-    type: mimeType || 'audio/webm'
-  });
-
-  const formData = new FormData();
-  formData.append('file', blob, 'audio.webm');
-  formData.append('model', 'openai/whisper-large-v3');
-  formData.append('language', langCode);
-
-  const response = await fetch(`${NIM_BASE_URL}/audio/transcriptions`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${NIM_API_KEY}`
-    },
-    body: formData
-  });
-
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(
-      `Transcription failed (${response.status}): ${body.slice(0, 220)}`
-    );
-  }
-
-  const payload = await response.json();
-  return {
-    text: payload?.text || '',
-    language: payload?.language || langCode,
-    confidence:
-      typeof payload?.avg_logprob === 'number' ? payload.avg_logprob : null,
-    source: 'openai/whisper-large-v3'
-  };
+  throw new Error('Transcription disabled: no NIM/Whisper backend configured.');
 }
 
 async function analyzeClinicalImage({

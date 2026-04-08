@@ -10,6 +10,11 @@ WebBrowser.maybeCompleteAuthSession();
 const SESSION_KEY = 'nirogya.supabase.session';
 const PROFILE_KEY_PREFIX = 'nirogya.profile.';
 
+type PersistedSession = {
+  access_token: string;
+  refresh_token: string;
+};
+
 export type User = {
   uid: string;
   email: string | null;
@@ -88,6 +93,23 @@ function getParamFromUrl(urlStr: string, key: string) {
   }
 }
 
+function toPersistedSession(session: any): PersistedSession | null {
+  if (!session?.access_token || !session?.refresh_token) return null;
+  return {
+    access_token: session.access_token,
+    refresh_token: session.refresh_token
+  };
+}
+
+async function persistSession(session: any | null) {
+  const compact = toPersistedSession(session);
+  if (!compact) {
+    await SecureStore.deleteItemAsync(SESSION_KEY);
+    return;
+  }
+  await SecureStore.setItemAsync(SESSION_KEY, JSON.stringify(compact));
+}
+
 async function withTimeout<T>(
   promise: Promise<T>,
   ms: number,
@@ -139,11 +161,7 @@ export async function initializeAuthState() {
     supabase.auth.onAuthStateChange(async (_event, session) => {
       auth.currentUser = mapSupabaseUser(session?.user ?? null);
       try {
-        if (session) {
-          await SecureStore.setItemAsync(SESSION_KEY, JSON.stringify(session));
-        } else {
-          await SecureStore.deleteItemAsync(SESSION_KEY);
-        }
+        await persistSession(session);
       } catch (storageErr) {
         console.warn('Session persistence failed:', storageErr);
       }
@@ -216,7 +234,7 @@ export async function signInWithGoogle() {
   }
 
   if (!session?.user) throw new Error('No user in Supabase session');
-  await SecureStore.setItemAsync(SESSION_KEY, JSON.stringify(session));
+  await persistSession(session);
 
   auth.currentUser = mapSupabaseUser(session.user);
   emitAuthState();
@@ -264,7 +282,7 @@ export async function signUp(
     };
   }
 
-  await SecureStore.setItemAsync(SESSION_KEY, JSON.stringify(session));
+  await persistSession(session);
   auth.currentUser = mapSupabaseUser(session.user);
   emitAuthState();
 
@@ -303,7 +321,7 @@ export async function signIn(_email: string, _password: string) {
   const session = data.session;
   if (!session?.user) throw new Error('No active session created.');
 
-  await SecureStore.setItemAsync(SESSION_KEY, JSON.stringify(session));
+  await persistSession(session);
   auth.currentUser = mapSupabaseUser(session.user);
   emitAuthState();
   return auth.currentUser!;
@@ -318,7 +336,7 @@ export async function logOut() {
 
   await supabase.auth.signOut();
   auth.currentUser = null;
-  await SecureStore.deleteItemAsync(SESSION_KEY);
+  await persistSession(null);
   emitAuthState();
 }
 

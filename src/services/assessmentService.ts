@@ -5,6 +5,21 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from './supabaseClient';
 import { backendFetch } from './backendApi';
 
+const warningKeys = new Set<string>();
+
+function warnOnce(key: string, ...args: any[]) {
+  if (warningKeys.has(key)) return;
+  warningKeys.add(key);
+  console.warn(...args);
+}
+
+function isLikelyNetworkFailure(err: unknown) {
+  const message = String((err as any)?.message ?? err);
+  return /(cannot reach backend api|network request failed|failed to fetch|econnrefused|enotfound|timed out|load failed)/i.test(
+    message
+  );
+}
+
 export interface Assessment {
   id?: string;
   uid: string;
@@ -64,7 +79,18 @@ export async function saveAssessment(
       createdId = response.id;
     }
   } catch (backendErr) {
-    console.warn('[Assessment API Fallback to Supabase]', backendErr);
+    if (isLikelyNetworkFailure(backendErr)) {
+      warnOnce(
+        'assessment-save-network',
+        '[Assessment API] Backend unavailable. Falling back to Supabase.'
+      );
+    } else {
+      warnOnce(
+        'assessment-save-error',
+        '[Assessment API Fallback to Supabase]',
+        backendErr
+      );
+    }
 
     const payloadSnake = {
       ...data,
@@ -131,15 +157,25 @@ export async function getUserAssessments(uid: string): Promise<Assessment[]> {
         riskScore: row.riskScore ?? row.risk_score ?? row.riskscore,
         riskLevel: row.riskLevel ?? row.risk_level ?? row.risklevel,
         nextSteps: row.nextSteps ?? row.next_steps ?? row.nextsteps ?? [],
-        rawAiText:
-          row.rawAiText ?? row.raw_ai_text ?? row.rawaitext ?? '',
+        rawAiText: row.rawAiText ?? row.raw_ai_text ?? row.rawaitext ?? '',
         createdAt: row.createdAt ?? row.created_at
       })) as Assessment[];
       await saveCache(uid, mapped);
       return mapped;
     }
   } catch (backendErr) {
-    console.warn('[Assessment API Fallback to Supabase]', backendErr);
+    if (isLikelyNetworkFailure(backendErr)) {
+      warnOnce(
+        'assessment-list-network',
+        '[Assessment API] Backend unavailable. Falling back to Supabase/cache.'
+      );
+    } else {
+      warnOnce(
+        'assessment-list-error',
+        '[Assessment API Fallback to Supabase]',
+        backendErr
+      );
+    }
   }
 
   const { data, error } = await supabase

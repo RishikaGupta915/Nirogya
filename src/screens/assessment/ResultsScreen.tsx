@@ -33,7 +33,8 @@ function normalizeDiagnosis(input?: RouteDiagnosis) {
 
   const nextSteps = Array.isArray(input.nextSteps)
     ? input.nextSteps.filter(
-        (step): step is string => typeof step === 'string' && step.trim().length > 0
+        (step): step is string =>
+          typeof step === 'string' && step.trim().length > 0
       )
     : [];
 
@@ -67,12 +68,16 @@ export default function ResultsScreen() {
   const heroAnim = useEntranceAnimation(0, 10);
   const bodyAnim = useEntranceAnimation(110, 12);
 
-  const diagnosis = normalizeDiagnosis(route.params?.diagnosis as RouteDiagnosis | undefined);
+  const diagnosis = normalizeDiagnosis(
+    route.params?.diagnosis as RouteDiagnosis | undefined
+  );
 
   if (!diagnosis) {
     return (
       <ScreenWrapper>
-        <Text className="text-textPrimary dark:text-slate-100">No results found.</Text>
+        <Text className="text-textPrimary dark:text-slate-100">
+          No results found.
+        </Text>
       </ScreenWrapper>
     );
   }
@@ -123,7 +128,11 @@ export default function ResultsScreen() {
           <RiskBadge level={diagnosis.riskLevel} />
           <Text
             className="mb-2 text-[28px] text-[#d5457a]"
-            style={{ fontFamily: FONTS.serif, fontWeight: '600', letterSpacing: -0.4 }}
+            style={{
+              fontFamily: FONTS.serif,
+              fontWeight: '600',
+              letterSpacing: -0.4
+            }}
           >
             {diagnosis.diagnosis}
           </Text>
@@ -252,6 +261,3 @@ export default function ResultsScreen() {
     </ScreenWrapper>
   );
 }
-
-
-

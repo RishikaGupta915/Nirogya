@@ -31,6 +31,10 @@ function timeAgo(ts: any): string {
 }
 
 function extractDiagnosisPayload(item: Assessment): DiagnosisResult & { fairnessScore?: number } {
+  const safeRiskLevel: DiagnosisResult['riskLevel'] =
+    item.riskLevel === 'high' || item.riskLevel === 'medium' || item.riskLevel === 'low'
+      ? item.riskLevel
+      : 'low';
   const fallback: DiagnosisResult & { fairnessScore?: number } = {
     diagnosis: item.diagnosis || 'Assessment summary',
     description: 'Your saved symptom assessment summary.',
@@ -38,13 +42,13 @@ function extractDiagnosisPayload(item: Assessment): DiagnosisResult & { fairness
       typeof item.riskScore === 'number' && Number.isFinite(item.riskScore)
         ? item.riskScore
         : 50,
-    riskLevel: item.riskLevel,
+    riskLevel: safeRiskLevel,
     nextSteps:
       Array.isArray(item.nextSteps) && item.nextSteps.length > 0
         ? item.nextSteps
         : ['Track symptoms and consult a doctor if they worsen.'],
-    seeDoctor: item.riskLevel === 'high',
-    urgency: item.riskLevel === 'high' ? 'As soon as possible' : 'Within a few days'
+    seeDoctor: safeRiskLevel === 'high',
+    urgency: safeRiskLevel === 'high' ? 'As soon as possible' : 'Within a few days'
   };
 
   if (!item.rawAiText) return fallback;
@@ -169,14 +173,14 @@ export default function HistoryScreen() {
         >
           {timeAgo(item.createdAt)}
         </Text>
-        <Text
-          className="text-[11px]"
-          style={{
-            color: RISK_COLORS[item.riskLevel],
+       <Text
+         className="text-[11px]"
+         style={{
+            color: RISK_COLORS[item.riskLevel ?? 'low'],
             fontFamily: FONTS.sansBold
           }}
         >
-          {item.riskScore}%
+          {typeof item.riskScore === 'number' ? item.riskScore : 0}%
         </Text>
       </View>
     </TouchableOpacity>
