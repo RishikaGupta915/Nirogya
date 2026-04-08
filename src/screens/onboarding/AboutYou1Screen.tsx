@@ -1,7 +1,7 @@
 // src/screens/onboarding/AboutYou1Screen.tsx
 
 import React, { useState } from 'react';
-import { View, Text, TextInput } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { ProgressDots, ProgressBar, GradientButton, SectionLabel, Chip } from '../../components/UI';
@@ -15,14 +15,50 @@ export default function AboutYou1Screen() {
   const nav = useNavigation<any>();
   const { setUserProfile, userProfile } = useApp();
 
+  const [monthlyIncomeInput, setMonthlyIncomeInput] = useState(
+    typeof userProfile.monthlyIncome === 'number' &&
+      Number.isFinite(userProfile.monthlyIncome) &&
+      userProfile.monthlyIncome > 0
+      ? String(Math.round(userProfile.monthlyIncome))
+      : ''
+  );
+  const [preferNoIncome, setPreferNoIncome] = useState(
+    Boolean(userProfile.incomeNotShared)
+  );
   const [city,      setCity]      = useState(userProfile.city ?? '');
   const [ageGroup,  setAgeGroup]  = useState(userProfile.ageGroup ?? '');
   const [lifeStage, setLifeStage] = useState(userProfile.lifeStage ?? '');
 
-  const canContinue = ageGroup && lifeStage;
+  const normalizedIncome = Number(monthlyIncomeInput.replace(/[^\d]/g, ''));
+  const hasIncome = Number.isFinite(normalizedIncome) && normalizedIncome > 0;
+  const canContinue = Boolean(ageGroup && lifeStage && (hasIncome || preferNoIncome));
+
+  const handleIncomeChange = (value: string) => {
+    const digitsOnly = value.replace(/[^\d]/g, '');
+    setMonthlyIncomeInput(digitsOnly);
+    if (digitsOnly.length > 0) {
+      setPreferNoIncome(false);
+    }
+  };
+
+  const handleToggleIncomePrivacy = () => {
+    setPreferNoIncome((prev) => {
+      const next = !prev;
+      if (next) {
+        setMonthlyIncomeInput('');
+      }
+      return next;
+    });
+  };
 
   const handleNext = () => {
-    setUserProfile({ city, ageGroup, lifeStage });
+    setUserProfile({
+      city,
+      ageGroup,
+      lifeStage,
+      monthlyIncome: preferNoIncome ? null : normalizedIncome,
+      incomeNotShared: preferNoIncome
+    });
     nav.navigate('AboutYou2');
   };
 
@@ -37,6 +73,39 @@ export default function AboutYou1Screen() {
       <Text className="mb-4 text-[12px] leading-[18px] text-textMuted dark:text-slate-300" style={{ fontFamily: FONTS.sans }}>
         This helps us make your health assessment accurate and personal.
       </Text>
+
+      <SectionLabel label="Monthly household income (INR)" />
+      <View className="mb-3 gap-2">
+        <TextInput
+          className="rounded-lg border border-borderSoft bg-card dark:bg-slate-900/72 px-3 py-3 text-[14px] text-textPrimary dark:text-slate-100"
+          style={{ fontFamily: FONTS.sans }}
+          placeholder="e.g. 35000"
+          placeholderTextColor={COLORS.textHint}
+          keyboardType="number-pad"
+          editable={!preferNoIncome}
+          value={monthlyIncomeInput}
+          onChangeText={handleIncomeChange}
+        />
+        <TouchableOpacity
+          className="self-start rounded-full border px-3 py-2"
+          style={{
+            borderColor: preferNoIncome ? COLORS.pinkBorder : COLORS.border,
+            backgroundColor: preferNoIncome ? COLORS.pinkBg : COLORS.bgCard
+          }}
+          onPress={handleToggleIncomePrivacy}
+          activeOpacity={0.85}
+        >
+          <Text
+            className="text-[11px]"
+            style={{
+              color: preferNoIncome ? COLORS.pink : COLORS.textSecondary,
+              fontFamily: preferNoIncome ? FONTS.sansBold : FONTS.sans
+            }}
+          >
+            {preferNoIncome ? 'Income marked as private' : 'Prefer not to say'}
+          </Text>
+        </TouchableOpacity>
+      </View>
 
       {/* City */}
       <View className="mb-3 gap-1">

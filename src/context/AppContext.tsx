@@ -14,6 +14,8 @@ import {
 interface UserProfile {
   name?: string;
   language?: string;
+  monthlyIncome?: number | null;
+  incomeNotShared?: boolean;
   ageGroup?: string;
   lifeStage?: string;
   city?: string;

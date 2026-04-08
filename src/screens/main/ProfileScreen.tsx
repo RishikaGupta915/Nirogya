@@ -5,7 +5,8 @@ import {
   TouchableOpacity,
   Switch,
   Alert,
-  ScrollView
+  ScrollView,
+  Share
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -14,7 +15,35 @@ import { COLORS, FONTS, LANGUAGES } from '../../constants/theme';
 import { UI_CLASSES, UI_SHADOWS } from '../../constants/ui';
 import { useApp } from '../../context/AppContext';
 import { auth, logOut, saveLanguage } from '../../services/authService';
+import { listChatSessions } from '../../services/chatHistoryService';
+import { createOverallShareLink } from '../../services/shareService';
 import { t } from '../../localization/i18n';
+
+function extractFirstName(value?: string | null): string {
+  if (!value) return '';
+
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+
+  const token = trimmed.split(/[\s@._-]+/).filter(Boolean)[0];
+  if (!token) return '';
+
+  return token.charAt(0).toUpperCase() + token.slice(1);
+}
+
+function uniq(values: string[], limit = 10) {
+  const out: string[] = [];
+  const seen = new Set<string>();
+
+  values.forEach((value) => {
+    const trimmed = (value || '').trim();
+    if (!trimmed || seen.has(trimmed)) return;
+    seen.add(trimmed);
+    out.push(trimmed);
+  });
+
+  return out.slice(0, limit);
+}
 
 export default function ProfileScreen() {
   const nav = useNavigation<any>();
@@ -23,9 +52,13 @@ export default function ProfileScreen() {
 
   const [periodReminders, setPeriodReminders] = useState(true);
   const [weeklyNudge, setWeeklyNudge] = useState(true);
-  const [shareWithDoc, setShareWithDoc] = useState(false);
+  const [shareBusy, setShareBusy] = useState(false);
 
-  const name = userProfile.name ?? 'User';
+  const name =
+    extractFirstName(userProfile.name) ||
+    extractFirstName(auth.currentUser?.displayName) ||
+    extractFirstName(auth.currentUser?.email) ||
+    'Friend';
   const initials = name
     .split(' ')
     .map((n: string) => n[0])
@@ -55,6 +88,47 @@ export default function ProfileScreen() {
         }
       ]
     );
+  };
+
+  const handleShareWithDoctorFromSettings = async () => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) {
+      Alert.alert('Sign in required', 'Please sign in to share with a doctor.');
+      return;
+    }
+
+    if (shareBusy) return;
+
+    setShareBusy(true);
+    try {
+      const chatSessions = await listChatSessions(80);
+
+      const chatDetectedTitles = uniq(
+        chatSessions
+          .map((session) => session.detectedTitle || session.title || '')
+          .filter((title) => title && title !== 'Nira conversation'),
+        10
+      );
+
+      const created = await createOverallShareLink(chatDetectedTitles, 72);
+      if (!created.shareUrl) {
+        throw new Error('Could not generate share URL for overall report.');
+      }
+
+      const expiresAtLabel = new Date(created.expiresAt).toLocaleString('en-IN');
+
+      await Share.share({
+        message: `Nirogya overall doctor summary link (expires ${expiresAtLabel}):\n${created.shareUrl}`,
+        url: created.shareUrl
+      });
+    } catch (err: any) {
+      Alert.alert(
+        'Share failed',
+        err?.message || 'Could not create the overall doctor report right now.'
+      );
+    } finally {
+      setShareBusy(false);
+    }
   };
 
   const selectedLang = userProfile.language ?? 'en';
@@ -228,12 +302,6 @@ export default function ProfileScreen() {
             sub: t(language, 'profile_weekly_nudge_sub'),
             val: weeklyNudge,
             set: setWeeklyNudge
-          },
-          {
-            label: t(language, 'profile_share_doctor'),
-            sub: t(language, 'profile_share_doctor_sub'),
-            val: shareWithDoc,
-            set: setShareWithDoc
           }
         ].map((item) => (
           <View key={item.label} className="flex-row items-center gap-3 py-3">
@@ -259,6 +327,48 @@ export default function ProfileScreen() {
             />
           </View>
         ))}
+
+        <TouchableOpacity
+          className="flex-row items-center gap-3 py-3"
+          onPress={() => {
+            void handleShareWithDoctorFromSettings();
+          }}
+          activeOpacity={0.82}
+          disabled={shareBusy}
+        >
+          <View style={{ flex: 1 }}>
+            <Text
+              className="text-[13px] text-textSecondary dark:text-slate-200"
+              style={{ fontFamily: FONTS.sans }}
+            >
+              {t(language, 'profile_share_doctor')}
+            </Text>
+            <Text
+              className="mt-[2px] text-[10px] text-textMuted dark:text-slate-300"
+              style={{ fontFamily: FONTS.sans }}
+            >
+              {t(language, 'profile_share_doctor_sub')}
+            </Text>
+          </View>
+
+          <View
+            className="rounded-full border px-3 py-[6px]"
+            style={{
+              borderColor: shareBusy ? COLORS.border : COLORS.pinkBorder,
+              backgroundColor: shareBusy ? COLORS.bgCard : COLORS.pinkBg
+            }}
+          >
+            <Text
+              className="text-[11px]"
+              style={{
+                color: shareBusy ? COLORS.textMuted : COLORS.pink,
+                fontFamily: FONTS.sansBold
+              }}
+            >
+              {shareBusy ? 'Creating...' : 'Create link'}
+            </Text>
+          </View>
+        </TouchableOpacity>
       </View>
 
       <Text

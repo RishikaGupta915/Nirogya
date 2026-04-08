@@ -831,6 +831,15 @@ type BackendQuestionsResponse = {
 
 type BackendDiagnosisResponse = {
   assessment: DiagnosisResult & { fairnessScore: number };
+  recommendation?: {
+    carePathway: string;
+    facilityType: string;
+    estimatedCostLow: number;
+    estimatedCostHigh: number;
+    pmjayApplicable: boolean;
+  };
+  alerts?: AlertItem[];
+  nearbyFacilities?: NearbyFacility[];
   source?: string;
   language?: string;
 };
@@ -841,11 +850,55 @@ export type ConversationStart = {
   language: string;
 };
 
+export type AlertItem = {
+  id: string;
+  severity: 'critical' | 'warning' | 'info';
+  title: string;
+  message: string;
+  action?: string | null;
+};
+
+export type NearbyFacility = {
+  id: string;
+  name: string;
+  facilityType: string;
+  distanceKm: number | null;
+  address: string;
+  contact: string | null;
+  mapUrl: string;
+  source?: string;
+};
+
+export type FollowUpQuestion = {
+  id: string;
+  text: string;
+  options: string[];
+  index: number;
+  total: number;
+};
+
 export type ConversationReply = {
   reply: string;
   isUrgent: boolean;
   source?: string;
   conversationId: string;
+  followUpQuestion?: FollowUpQuestion | null;
+  alerts?: AlertItem[];
+  nearbyFacilities?: NearbyFacility[];
+  recommendation?: {
+    carePathway: string;
+    facilityType: string;
+    estimatedCostLow: number;
+    estimatedCostHigh: number;
+    pmjayApplicable: boolean;
+  };
+  assessment?: (DiagnosisResult & { fairnessScore?: number }) | null;
+  riskFlags?: {
+    condition: string;
+    severity: string;
+    confidence: number;
+    triggerRules: string[];
+  }[];
 };
 
 export type VoiceTranscriptionResponse = {
@@ -907,8 +960,16 @@ export type FullPipelineResponse = {
     estimatedCostHigh: number;
     pmjayApplicable: boolean;
   };
+  alerts?: AlertItem[];
+  nearbyFacilities?: NearbyFacility[];
   assistantReply: string;
   sources: Record<string, string | undefined>;
+};
+
+export type NearbyFacilitiesLookupResponse = {
+  location: string | null;
+  riskLevel: 'low' | 'medium' | 'high';
+  nearbyFacilities: NearbyFacility[];
 };
 
 // ── Generate follow-up questions for a symptom ────────────────
@@ -1352,4 +1413,28 @@ export async function runFullAiPipeline(
       history
     })
   });
+}
+
+export async function fetchNearbyFacilities(params: {
+  city?: string;
+  district?: string;
+  state?: string;
+  riskLevel?: 'low' | 'medium' | 'high';
+  limit?: number;
+}): Promise<NearbyFacilitiesLookupResponse> {
+  const search = new URLSearchParams();
+  if (params.city) search.set('city', params.city);
+  if (params.district) search.set('district', params.district);
+  if (params.state) search.set('state', params.state);
+  if (params.riskLevel) search.set('riskLevel', params.riskLevel);
+  if (typeof params.limit === 'number' && Number.isFinite(params.limit)) {
+    search.set('limit', String(Math.max(1, Math.min(8, Math.round(params.limit)))));
+  }
+
+  return backendFetch<NearbyFacilitiesLookupResponse>(
+    `/facilities/nearby${search.toString() ? `?${search.toString()}` : ''}`,
+    {
+      method: 'GET'
+    }
+  );
 }

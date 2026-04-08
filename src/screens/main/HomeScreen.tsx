@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-import NiraIconButton from '../../components/NiraIconButton';
+import { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -7,8 +6,9 @@ import {
   TouchableOpacity,
   Animated
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import {
   CATEGORY_COLORS,
@@ -27,12 +27,25 @@ import {
 import { useEntranceAnimation } from '../../hooks/useEntranceAnimation';
 import { t } from '../../localization/i18n';
 
+function extractFirstName(value?: string | null): string {
+  if (!value) return '';
+
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+
+  const token = trimmed.split(/[\s@._-]+/).filter(Boolean)[0];
+  if (!token) return '';
+
+  return token.charAt(0).toUpperCase() + token.slice(1);
+}
+
 export default function HomeScreen() {
   const nav = useNavigation<any>();
   const { userProfile } = useApp();
   const language = userProfile.language ?? 'en';
   const [search, setSearch] = useState('');
   const [recent, setRecent] = useState<Assessment[]>([]);
+  const [currentHour, setCurrentHour] = useState(() => new Date().getHours());
   const uid = auth.currentUser?.uid;
 
   useEffect(() => {
@@ -62,8 +75,25 @@ export default function HomeScreen() {
   const recentAnim = useEntranceAnimation(90, 12);
   const contentAnim = useEntranceAnimation(170, 14);
 
-  const hour = new Date().getHours();
-  const timeOfDay = hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening';
+  useEffect(() => {
+    const updateHour = () => setCurrentHour(new Date().getHours());
+    const timer = setInterval(updateHour, 60 * 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      setCurrentHour(new Date().getHours());
+    }, [])
+  );
+
+  const timeOfDay =
+    currentHour < 12 ? 'morning' : currentHour < 17 ? 'afternoon' : 'evening';
+  const firstName =
+    extractFirstName(userProfile.name) ||
+    extractFirstName(auth.currentUser?.displayName) ||
+    extractFirstName(auth.currentUser?.email) ||
+    'Friend';
   const greetingByTime =
     timeOfDay === 'morning'
       ? t(language, 'home_good_morning')
@@ -87,6 +117,14 @@ export default function HomeScreen() {
     nav.navigate('Assessment', { symptom: cat.label });
   };
 
+  const openNiraChat = () => {
+    nav.navigate('NiraChat');
+  };
+
+  const openSavedChats = () => {
+    nav.navigate('NiraChat', { openHistoryAt: Date.now() });
+  };
+
   return (
     <ScreenWrapper>
       <Animated.View style={heroAnim}>
@@ -100,14 +138,13 @@ export default function HomeScreen() {
                 letterSpacing: -0.5
               }}
             >
-              Nirogya
+              {`Hi, ${firstName}!!`}
             </Text>
             <Text
               className="mt-[2px] text-[12px] text-textSecondary dark:text-slate-200"
               style={{ fontFamily: FONTS.sans }}
             >
-              {greetingByTime},{' '}
-              {userProfile.name?.split(' ')[0] ?? t(language, 'home_there')}
+              {greetingByTime}
             </Text>
           </View>
           <TouchableOpacity
@@ -119,13 +156,9 @@ export default function HomeScreen() {
               className="text-[16px] text-brandStart"
               style={{ fontFamily: FONTS.serif, fontWeight: '600' }}
             >
-              {(userProfile.name ?? 'U').charAt(0).toUpperCase()}
+              {firstName.charAt(0).toUpperCase()}
             </Text>
           </TouchableOpacity>
-        </View>
-
-        <View className="mb-2 items-end">
-          <NiraIconButton />
         </View>
 
         <View className="mb-4 flex-row flex-wrap gap-2">
@@ -227,6 +260,68 @@ export default function HomeScreen() {
               </Text>
             </TouchableOpacity>
           )}
+        </View>
+
+        <View className="mb-5">
+          <TouchableOpacity
+            className="overflow-hidden rounded-2xl"
+            style={UI_SHADOWS.brandGlow}
+            onPress={openNiraChat}
+            activeOpacity={0.88}
+          >
+            <LinearGradient
+              colors={[COLORS.gradStart, COLORS.gradMid, COLORS.gradEnd]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              className="flex-row items-center px-4 py-3"
+            >
+              <View className="h-10 w-10 items-center justify-center rounded-xl bg-white/22">
+                <MaterialCommunityIcons
+                  name="robot-excited-outline"
+                  size={21}
+                  color="#fff"
+                />
+              </View>
+              <View className="ml-3 flex-1">
+                <Text
+                  className="text-[15px] text-white"
+                  style={{ fontFamily: FONTS.sansBold }}
+                >
+                  Diagnos with Nira
+                </Text>
+                <Text
+                  className="mt-[1px] text-[11px] text-white/90"
+                  style={{ fontFamily: FONTS.sans }}
+                >
+                  Chat for guided follow-up and instant care direction.
+                </Text>
+              </View>
+              <MaterialCommunityIcons
+                name="chevron-right"
+                size={20}
+                color="#fff"
+              />
+            </LinearGradient>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            className="mt-[9px] flex-row items-center self-start rounded-full border border-borderSoft bg-card dark:bg-slate-900/72 px-3 py-[7px]"
+            style={UI_SHADOWS.soft}
+            onPress={openSavedChats}
+            activeOpacity={0.84}
+          >
+            <MaterialCommunityIcons
+              name="archive-outline"
+              size={14}
+              color={COLORS.textSecondary}
+            />
+            <Text
+              className="ml-[6px] text-[11px] text-textSecondary dark:text-slate-200"
+              style={{ fontFamily: FONTS.sansBold }}
+            >
+              Open previous chats quickly
+            </Text>
+          </TouchableOpacity>
         </View>
 
         <Text

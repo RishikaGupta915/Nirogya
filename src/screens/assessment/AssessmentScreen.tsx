@@ -92,6 +92,7 @@ export default function AssessmentScreen() {
     try {
       let diagnosis: any;
       let pipelinePayload: any = null;
+      let savedAssessment: { id?: string; createdAt: string } | null = null;
 
       try {
         const pipeline = await runFullAiPipeline(
@@ -114,7 +115,7 @@ export default function AssessmentScreen() {
 
       const uid = auth.currentUser?.uid;
       if (uid) {
-        await saveAssessment({
+        savedAssessment = await saveAssessment({
           uid,
           symptom,
           answers,
@@ -129,7 +130,22 @@ export default function AssessmentScreen() {
         });
       }
 
-      nav.navigate('Results', { diagnosis, symptom });
+      nav.navigate('Results', {
+        diagnosis,
+        symptom,
+        assessmentId: savedAssessment?.id ?? null,
+        recommendation: pipelinePayload?.recommendation ?? null,
+        nearbyFacilities: Array.isArray(pipelinePayload?.nearbyFacilities)
+          ? pipelinePayload.nearbyFacilities
+          : [],
+        alerts: Array.isArray(pipelinePayload?.alerts)
+          ? pipelinePayload.alerts
+          : [],
+        riskFlags: Array.isArray(pipelinePayload?.riskFlags)
+          ? pipelinePayload.riskFlags
+          : [],
+        contextMap: pipelinePayload?.contextMap ?? null
+      });
     } catch {
       Alert.alert(
         t(language, 'assessment_alert_error_title'),

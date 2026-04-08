@@ -141,7 +141,10 @@ export async function saveAssessment(
       new Date(a.createdAt ?? 0).getTime()
   );
   await saveCache(data.uid, next);
-  return entry.createdAt;
+  return {
+    id: entry.id,
+    createdAt: entry.createdAt ?? createdAt
+  };
 }
 
 export async function getUserAssessments(uid: string): Promise<Assessment[]> {
