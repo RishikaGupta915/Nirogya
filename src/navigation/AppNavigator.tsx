@@ -28,6 +28,7 @@ import HomeScreen from '../screens/main/HomeScreen';
 import NiraChatScreen from '../screens/main/NiraChatScreen';
 import HistoryScreen from '../screens/main/HistoryScreen';
 import ProfileScreen from '../screens/main/ProfileScreen';
+import GeneticProfileScreen from '../screens/main/GeneticProfileScreen';
 
 // Assessment
 import AssessmentScreen from '../screens/assessment/AssessmentScreen';
@@ -160,6 +161,7 @@ export default function AppNavigator() {
           <Stack.Screen name="Assessment" component={AssessmentScreen} />
           <Stack.Screen name="Results" component={ResultsScreen} />
           <Stack.Screen name="NiraChat" component={NiraChatScreen} />
+          <Stack.Screen name="GeneticProfile" component={GeneticProfileScreen} />
           {/* Allow re-entering profile edit from settings */}
           <Stack.Screen name="AboutYou1" component={AboutYou1Screen} />
           <Stack.Screen name="AboutYou2" component={AboutYou2Screen} />

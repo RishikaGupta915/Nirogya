@@ -1,90 +1,24 @@
-import { Platform } from 'react-native';
-import Constants from 'expo-constants';
 import { supabase } from './supabaseClient';
 
-const EXPLICIT_BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL?.trim();
+const EXPLICIT_BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+
+function sanitizeBackendUrl(raw: string) {
+  return raw.replace(/\s+/g, '');
+}
 
 function normalizeBaseUrl(raw: string) {
-  return raw.endsWith('/') ? raw.slice(0, -1) : raw;
-}
-
-function maybeRewriteAndroidLoopback(raw: string) {
-  if (Platform.OS !== 'android') return raw;
-
-  try {
-    const url = new URL(raw);
-    const host = url.hostname.toLowerCase();
-    if (host === 'localhost' || host === '127.0.0.1' || host === '::1') {
-      url.hostname = '10.0.2.2';
-      return url.toString();
-    }
-  } catch {
-    // Keep the original raw URL if parsing fails.
-  }
-
-  return raw;
-}
-
-function extractHostFromUri(uri?: string | null) {
-  if (!uri || typeof uri !== 'string') return null;
-  try {
-    const withScheme = uri.includes('://') ? uri : `http://${uri}`;
-    const parsed = new URL(withScheme);
-    return parsed.hostname || null;
-  } catch {
-    return null;
-  }
-}
-
-function getExpoLanHost() {
-  const manifestAny = (Constants as any)?.manifest;
-  const manifest2Any = (Constants as any)?.manifest2;
-
-  const candidates = [
-    (Constants as any)?.expoConfig?.hostUri,
-    manifestAny?.debuggerHost,
-    manifest2Any?.extra?.expoClient?.hostUri
-  ];
-
-  for (const candidate of candidates) {
-    const host = extractHostFromUri(candidate);
-    if (
-      host &&
-      host !== 'localhost' &&
-      host !== '127.0.0.1' &&
-      host !== '::1'
-    ) {
-      return host;
-    }
-  }
-
-  return null;
+  const cleaned = sanitizeBackendUrl(String(raw || '').trim());
+  return cleaned.endsWith('/') ? cleaned.slice(0, -1) : cleaned;
 }
 
 function getCandidateBackendBaseUrls() {
-  const candidates: string[] = [];
-
-  if (EXPLICIT_BACKEND_URL) {
-    candidates.push(
-      normalizeBaseUrl(maybeRewriteAndroidLoopback(EXPLICIT_BACKEND_URL))
+  const explicit = normalizeBaseUrl(EXPLICIT_BACKEND_URL || '');
+  if (!explicit) {
+    throw new Error(
+      'EXPO_PUBLIC_BACKEND_URL is required. Set it in .env to your backend URL.'
     );
-    candidates.push(normalizeBaseUrl(EXPLICIT_BACKEND_URL));
   }
-
-  candidates.push(
-    normalizeBaseUrl(
-      Platform.OS === 'android'
-        ? 'http://10.0.2.2:4000'
-        : 'http://localhost:4000'
-    )
-  );
-
-  const lanHost = getExpoLanHost();
-  if (lanHost) {
-    candidates.push(normalizeBaseUrl(`http://${lanHost}:4000`));
-  }
-
-  return [...new Set(candidates.filter(Boolean))];
+  return [explicit];
 }
 
 function isLikelyNetworkFailure(err: unknown) {
@@ -111,13 +45,19 @@ export async function backendFetch<T>(
   let lastNetworkError: unknown = null;
   for (const baseUrl of baseUrls) {
     try {
+      const headers = new Headers(init.headers || {});
+      headers.set('Authorization', `Bearer ${accessToken}`);
+
+      const isFormDataBody =
+        typeof FormData !== 'undefined' && init.body instanceof FormData;
+
+      if (!isFormDataBody && !headers.has('Content-Type')) {
+        headers.set('Content-Type', 'application/json');
+      }
+
       const response = await fetch(`${baseUrl}${normalizedPath}`, {
         ...init,
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-          ...(init.headers || {})
-        }
+        headers
       });
 
       if (!response.ok) {
@@ -139,7 +79,7 @@ export async function backendFetch<T>(
       return (await response.json()) as T;
     } catch (err) {
       if (isLikelyNetworkFailure(err)) {
-        console.warn('[AI API NETWORK RETRY]', {
+        console.warn('[AI API NETWORK ERROR]', {
           method,
           path: normalizedPath,
           baseUrl,
@@ -169,9 +109,7 @@ export async function backendFetch<T>(
     error: details
   });
   throw new Error(
-    `Cannot reach backend API. Tried: ${baseUrls.join(', ')}. ` +
-      `If using Android emulator use http://10.0.2.2:4000. ` +
-      `If using a physical device set EXPO_PUBLIC_BACKEND_URL to your computer LAN URL (for example http://192.168.x.x:4000). ` +
+    `Cannot reach backend API at EXPO_PUBLIC_BACKEND_URL (${baseUrls.join(', ')}). ` +
       `Original error: ${details}`
   );
 }

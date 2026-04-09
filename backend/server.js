@@ -1,6 +1,7 @@
 require('dotenv').config({ path: '.env' });
 const crypto = require('crypto');
 const express = require('express');
+const multer = require('multer');
 const { PrismaClient } = require('@prisma/client');
 const { createClient } = require('@supabase/supabase-js');
 const {
@@ -20,10 +21,20 @@ const {
   runFullPipeline
 } = require('./ai');
 const { getNearbyFacilities } = require('./facilities');
+const { parseVCF, extractRsIds } = require('./genomics/vcfParser');
+const { fetchAllVariants } = require('./genomics/clinvarClient');
+const { annotateAll } = require('./genomics/ensemblClient');
+const { calculateAllPRS } = require('./genomics/prsCalculator');
+const { generateGeneticFlags } = require('./genomics/riskFlagGenerator');
 
 const prisma = new PrismaClient();
 const app = express();
 app.use(express.json({ limit: '15mb' }));
+
+const genomicUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }
+});
 
 const conversations = new Map();
 const SHARE_LINK_SECRET =
@@ -1085,6 +1096,160 @@ app.post(['/assessments', '/api/assessments'], async (req, res) => {
   }
 });
 
+app.post(
+  ['/genomics/upload', '/api/genomics/upload'],
+  genomicUpload.single('file'),
+  async (req, res) => {
+    try {
+      if (!req.file?.buffer) {
+        return res.status(400).json({ error: 'VCF file is required.' });
+      }
+
+      const originalName = String(req.file.originalname || '').toLowerCase();
+      if (!originalName.endsWith('.vcf')) {
+        return res
+          .status(400)
+          .json({ error: 'Please upload a valid .vcf file.' });
+      }
+
+      const vcfText = req.file.buffer.toString('utf8');
+      const parsedVariants = parseVCF(vcfText);
+      const rsIds = extractRsIds(parsedVariants);
+
+      if (!rsIds.length) {
+        return res.status(400).json({
+          error:
+            'No valid rsID variants found. Ensure your VCF has PASS entries with rs identifiers.'
+        });
+      }
+
+      const [clinvarVariants, ensemblVariants] = await Promise.all([
+        fetchAllVariants(rsIds),
+        annotateAll(rsIds)
+      ]);
+
+      const ensemblByRsId = new Map(
+        ensemblVariants.map((variant) => [variant.rsId, variant])
+      );
+
+      const annotatedVariants = clinvarVariants.map((variant) => ({
+        ...variant,
+        ensembl: ensemblByRsId.get(variant.rsId) || null
+      }));
+
+      const prsScores = calculateAllPRS(rsIds);
+      const rawFlags = await generateGeneticFlags(annotatedVariants, prsScores);
+
+      const savedProfile = await prisma.geneticProfile.upsert({
+        where: { uid: req.uid },
+        update: {
+          rsIds,
+          prsT2d: prsScores.t2d.score,
+          prsCad: prsScores.cad.score,
+          prsHtn: prsScores.htn.score
+        },
+        create: {
+          uid: req.uid,
+          rsIds,
+          prsT2d: prsScores.t2d.score,
+          prsCad: prsScores.cad.score,
+          prsHtn: prsScores.htn.score
+        }
+      });
+
+      await prisma.geneticFlag.deleteMany({ where: { uid: req.uid } });
+
+      const normalizedFlags = rawFlags.map((flag) => ({
+        uid: req.uid,
+        geneticProfileId: savedProfile.id,
+        type: String(flag.type || 'genetic_insight'),
+        gene: typeof flag.gene === 'string' ? flag.gene : null,
+        severity: String(flag.severity || 'LOW').toUpperCase(),
+        conditions: Array.isArray(flag.conditions)
+          ? flag.conditions.map((item) => String(item))
+          : typeof flag.condition === 'string'
+            ? [flag.condition]
+            : [],
+        plainLanguage: String(
+          flag.plainLanguage || 'No plain-language interpretation available.'
+        ),
+        actionRequired: String(
+          flag.actionRequired || 'Discuss this finding with your doctor.'
+        ),
+        drugWarning:
+          typeof flag.drugWarning === 'string' && flag.drugWarning.trim()
+            ? flag.drugWarning.trim()
+            : null,
+        source: String(flag.source || 'Nirogya genomics pipeline')
+      }));
+
+      if (normalizedFlags.length > 0) {
+        await prisma.geneticFlag.createMany({ data: normalizedFlags });
+      }
+
+      res.status(201).json({
+        geneticProfile: {
+          id: savedProfile.id,
+          uid: savedProfile.uid,
+          rsIds: savedProfile.rsIds,
+          prsT2d: Number(savedProfile.prsT2d),
+          prsCad: Number(savedProfile.prsCad),
+          prsHtn: Number(savedProfile.prsHtn),
+          createdAt: savedProfile.createdAt,
+          updatedAt: savedProfile.updatedAt
+        },
+        flags: normalizedFlags,
+        summary: {
+          rsIdCount: rsIds.length,
+          clinvarAnnotatedCount: clinvarVariants.length,
+          generatedFlagCount: normalizedFlags.length
+        }
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: err.message || 'Genomic upload failed' });
+    }
+  }
+);
+
+app.get(['/genomics/profile', '/api/genomics/profile'], async (req, res) => {
+  try {
+    const profile = await prisma.geneticProfile.findUnique({
+      where: { uid: req.uid },
+      include: { flags: true }
+    });
+
+    if (!profile) {
+      return res.json({ geneticProfile: null, flags: [] });
+    }
+
+    const severityRank = { HIGH: 3, MEDIUM: 2, LOW: 1 };
+    const sortedFlags = [...profile.flags].sort((a, b) => {
+      const scoreA = severityRank[String(a.severity || '').toUpperCase()] || 0;
+      const scoreB = severityRank[String(b.severity || '').toUpperCase()] || 0;
+      if (scoreA !== scoreB) return scoreB - scoreA;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+
+    res.json({
+      geneticProfile: {
+        id: profile.id,
+        uid: profile.uid,
+        rsIds: profile.rsIds,
+        prsT2d: Number(profile.prsT2d),
+        prsCad: Number(profile.prsCad),
+        prsHtn: Number(profile.prsHtn),
+        createdAt: profile.createdAt,
+        updatedAt: profile.updatedAt
+      },
+      flags: sortedFlags
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message || 'Could not fetch genomic profile' });
+  }
+});
+
 app.post(['/share-links', '/api/share-links'], async (req, res) => {
   try {
     const data = req.body || {};
@@ -2034,7 +2199,22 @@ app.post(
   }
 );
 
-const port = process.env.PORT || 4000;
-app.listen(port, () => {
-  console.log(`Backend running on http://localhost:${port}`);
+const port = Number(process.env.PORT || 4000);
+const host = process.env.HOST || '0.0.0.0';
+
+const server = app.listen(port, host, () => {
+  console.log(`Backend running on http://${host}:${port}`);
+});
+
+server.on('error', (err) => {
+  if (err?.code === 'EADDRINUSE') {
+    console.error(
+      `Port ${port} is already in use. Stop the existing backend process before starting a new one.`
+    );
+    process.exit(1);
+    return;
+  }
+
+  console.error('Backend startup failed:', err?.message || err);
+  process.exit(1);
 });

@@ -270,6 +270,33 @@ export default function ProfileScreen() {
             </Text>
           </View>
         ))}
+
+        <TouchableOpacity
+          className="flex-row items-center gap-3 py-3"
+          onPress={() => nav.navigate('GeneticProfile')}
+          activeOpacity={0.82}
+        >
+          <View style={{ flex: 1 }}>
+            <Text
+              className="text-[13px] text-textSecondary dark:text-slate-200"
+              style={{ fontFamily: FONTS.sans }}
+            >
+              Genetic profile
+            </Text>
+            <Text
+              className="mt-[2px] text-[10px] text-textMuted dark:text-slate-300"
+              style={{ fontFamily: FONTS.sans }}
+            >
+              Upload VCF and view genomic risk flags
+            </Text>
+          </View>
+          <MaterialCommunityIcons
+            name="dna"
+            size={16}
+            color={COLORS.textSecondary}
+          />
+        </TouchableOpacity>
+
         <TouchableOpacity
           className="flex-row items-center gap-3 py-3"
           onPress={() => nav.navigate('AboutYou1')}

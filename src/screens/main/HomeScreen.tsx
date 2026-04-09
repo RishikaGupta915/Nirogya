@@ -125,6 +125,10 @@ export default function HomeScreen() {
     nav.navigate('NiraChat', { openHistoryAt: Date.now() });
   };
 
+  const openGeneticProfile = () => {
+    nav.navigate('GeneticProfile');
+  };
+
   return (
     <ScreenWrapper>
       <Animated.View style={heroAnim}>
@@ -320,6 +324,25 @@ export default function HomeScreen() {
               style={{ fontFamily: FONTS.sansBold }}
             >
               Open previous chats quickly
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            className="mt-[9px] flex-row items-center self-start rounded-full border border-borderSoft bg-card dark:bg-slate-900/72 px-3 py-[7px]"
+            style={UI_SHADOWS.soft}
+            onPress={openGeneticProfile}
+            activeOpacity={0.84}
+          >
+            <MaterialCommunityIcons
+              name="dna"
+              size={14}
+              color={COLORS.textSecondary}
+            />
+            <Text
+              className="ml-[6px] text-[11px] text-textSecondary dark:text-slate-200"
+              style={{ fontFamily: FONTS.sansBold }}
+            >
+              Open genetic profile
             </Text>
           </TouchableOpacity>
         </View>

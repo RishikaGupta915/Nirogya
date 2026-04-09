@@ -1,0 +1,22 @@
+{
+  "_note": "Placeholder — replace with real Genome India Project data from genomeindiaproject.org",
+  "rs334": {
+    "allele_frequency_india": 0.008,
+    "population_groups": [
+      "tribal",
+      "dravidian"
+    ]
+  },
+  "rs1050828": {
+    "allele_frequency_india": 0.098,
+    "population_groups": [
+      "south_india"
+    ]
+  },
+  "rs11549407": {
+    "allele_frequency_india": 0.035,
+    "population_groups": [
+      "general"
+    ]
+  }
+}

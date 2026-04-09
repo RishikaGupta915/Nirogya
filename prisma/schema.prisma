@@ -41,6 +41,8 @@ model Profile {
   assessments    Assessment[]
   shareLinks     ShareLink[]
   overallShareLinks OverallShareLink[]
+  geneticProfile GeneticProfile?
+  geneticFlags   GeneticFlag[]
 
   @@index([uid], map: "idx_profiles_uid")
   @@schema("public")
@@ -106,4 +108,45 @@ model OverallShareLink {
   @@index([expiresAt], map: "idx_overall_share_links_expires_at")
   @@schema("public")
   @@map("overall_share_links")
+}
+
+model GeneticProfile {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  uid       String   @unique @db.Uuid
+  rsIds     String[] @map("rs_ids") @db.Text
+  prsT2d    Decimal  @map("prs_t2d") @db.Decimal(6, 4)
+  prsCad    Decimal  @map("prs_cad") @db.Decimal(6, 4)
+  prsHtn    Decimal  @map("prs_htn") @db.Decimal(6, 4)
+  createdAt DateTime @map("created_at") @default(now()) @db.Timestamptz
+  updatedAt DateTime @map("updated_at") @default(now()) @updatedAt @db.Timestamptz
+
+  profile   Profile       @relation(fields: [uid], references: [uid], onDelete: Cascade, onUpdate: NoAction)
+  flags     GeneticFlag[]
+
+  @@index([uid], map: "idx_genetic_profiles_uid")
+  @@schema("public")
+  @@map("genetic_profiles")
+}
+
+model GeneticFlag {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  uid            String   @db.Uuid
+  geneticProfileId String @map("genetic_profile_id") @db.Uuid
+  type           String   @db.Text
+  gene           String?  @db.Text
+  severity       String   @db.Text
+  conditions     String[] @default([]) @db.Text
+  plainLanguage  String   @map("plain_language") @db.Text
+  actionRequired String   @map("action_required") @db.Text
+  drugWarning    String?  @map("drug_warning") @db.Text
+  source         String   @db.Text
+  createdAt      DateTime @map("created_at") @default(now()) @db.Timestamptz
+
+  profile        Profile        @relation(fields: [uid], references: [uid], onDelete: Cascade, onUpdate: NoAction)
+  geneticProfile GeneticProfile @relation(fields: [geneticProfileId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([uid, severity], map: "idx_genetic_flags_uid_severity")
+  @@index([geneticProfileId], map: "idx_genetic_flags_profile_id")
+  @@schema("public")
+  @@map("genetic_flags")
 }
