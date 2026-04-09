@@ -328,19 +328,23 @@ export default function HomeScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            className="mt-[9px] flex-row items-center self-start rounded-full border border-borderSoft bg-card dark:bg-slate-900/72 px-3 py-[7px]"
-            style={UI_SHADOWS.soft}
+            className="mt-[9px] flex-row items-center self-start rounded-full border px-3 py-[7px]"
+            style={{
+              ...UI_SHADOWS.soft,
+              borderColor: COLORS.pinkBorder,
+              backgroundColor: COLORS.pinkBg
+            }}
             onPress={openGeneticProfile}
             activeOpacity={0.84}
           >
             <MaterialCommunityIcons
               name="dna"
               size={14}
-              color={COLORS.textSecondary}
+              color={COLORS.pink}
             />
             <Text
-              className="ml-[6px] text-[11px] text-textSecondary dark:text-slate-200"
-              style={{ fontFamily: FONTS.sansBold }}
+              className="ml-[6px] text-[11px]"
+              style={{ color: COLORS.pink, fontFamily: FONTS.sansBold }}
             >
               Open genetic profile
             </Text>
